@@ -38,14 +38,24 @@ function friendly(e: unknown): Error {
 
 /** Sends the SMS code. `containerId` is an empty element that stays mounted (invisible reCAPTCHA). */
 export async function sendPhoneCode(phone: string, containerId: string): Promise<ConfirmationResult> {
+  const reset = () => {
+    try { verifier?.clear() } catch { /* already cleared */ }
+    verifier = null
+    const host = document.getElementById(containerId)
+    if (host) host.innerHTML = ''
+  }
   try {
     const { authMod, auth } = await load()
-    verifier?.clear()
-    verifier = new authMod.RecaptchaVerifier(auth, containerId, { size: 'invisible' })
+    reset()
+    // A fresh child element each attempt: reCAPTCHA refuses to render twice into the same element.
+    const host = document.getElementById(containerId)
+    if (!host) throw new Error('Security check is not ready. Refresh the page and try again.')
+    const slot = document.createElement('div')
+    host.appendChild(slot)
+    verifier = new authMod.RecaptchaVerifier(auth, slot, { size: 'invisible' })
     return await authMod.signInWithPhoneNumber(auth, phone, verifier)
   } catch (e) {
-    verifier?.clear()
-    verifier = null
+    reset()
     throw friendly(e)
   }
 }
