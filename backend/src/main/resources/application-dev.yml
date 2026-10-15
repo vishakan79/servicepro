@@ -1,0 +1,14 @@
+spring:
+  datasource:
+    url: jdbc:h2:mem:fsm;MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE;DEFAULT_NULL_ORDERING=HIGH;DB_CLOSE_DELAY=-1
+    username: sa
+    password: ""
+  cache:
+    type: simple
+management:
+  health:
+    redis:
+      enabled: false
+app:
+  security:
+    secure-cookies: false

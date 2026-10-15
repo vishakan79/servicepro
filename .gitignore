@@ -1,0 +1,9 @@
+local-secrets.bat
+local-secrets.sh
+backend/config/application-local.yml
+target/
+*.log
+.DS_Store
+.idea/
+*.iml
+backend/_archive/

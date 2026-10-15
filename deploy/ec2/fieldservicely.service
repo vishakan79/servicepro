@@ -1,0 +1,22 @@
+# Alternative to Docker: run the jar directly under systemd.
+# Install:  sudo cp fieldservicely.service /etc/systemd/system/ && sudo systemctl daemon-reload && sudo systemctl enable --now fieldservicely
+# Put the same variables as .env.prod.example (DB_HOST, DB_USER, ..., JWT_SECRET, CORS_ORIGINS) in /etc/fieldservicely.env (chmod 600).
+[Unit]
+Description=FieldServicely API
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+User=fsapp
+EnvironmentFile=/etc/fieldservicely.env
+Environment=SPRING_PROFILES_ACTIVE=prod
+Environment=JAVA_TOOL_OPTIONS=-XX:MaxRAMPercentage=70
+ExecStart=/usr/bin/java -jar /opt/fieldservicely/app.jar
+SuccessExitStatus=143
+Restart=on-failure
+RestartSec=5
+NoNewPrivileges=true
+ProtectSystem=full
+
+[Install]
+WantedBy=multi-user.target

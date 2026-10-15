@@ -1,0 +1,85 @@
+spring:
+  application:
+    name: fieldservicely
+  profiles:
+    active: ${SPRING_PROFILES_ACTIVE:local}
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        jdbc.time_zone: UTC
+        type.preferred_instant_jdbc_type: TIMESTAMP
+        jdbc.batch_size: 50
+  flyway:
+    enabled: true
+  jackson:
+    default-property-inclusion: non_null
+    serialization:
+      write-dates-as-timestamps: false
+  mail:
+    host: ${MAIL_HOST:localhost}
+    port: ${MAIL_PORT:25}
+    username: ${MAIL_USER:}
+    password: ${MAIL_PASSWORD:}
+    properties:
+      mail.smtp.auth: true
+      mail.smtp.starttls.enable: true
+      mail.smtp.connectiontimeout: 5000
+      mail.smtp.timeout: 5000
+      mail.smtp.writetimeout: 5000
+
+server:
+  port: ${PORT:8080}
+  shutdown: graceful
+  error:
+    include-message: never
+    include-stacktrace: never
+
+management:
+  health:
+    mail:
+      enabled: false   # mail is not used for sign-in; do not let an unconfigured SMTP host mark the app DOWN
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  endpoint:
+    health:
+      probes:
+        enabled: true
+
+logging:
+  pattern:
+    level: "%5p [%X{requestId:-}]"
+
+app:
+  zone: ${APP_ZONE:Asia/Kolkata}
+  jwt:
+    secret: ${JWT_SECRET:dev-only-secret-change-me-dev-only-secret-change-me-0123456789}
+    issuer: servicepro
+    access-ttl: 1d      # a sign-in stays valid for one day
+    refresh-ttl: 1d
+  security:
+    secure-cookies: true
+    login-max-attempts: 10
+    login-window: 15m
+  cors:
+    allowed-origins: ${CORS_ORIGINS:http://localhost:5173}
+  sla:
+    check-ms: 60000
+  mail:
+    enabled: ${MAIL_ENABLED:false}
+    from: ${MAIL_FROM:noreply@servicepro.local}
+    provider: ${MAIL_PROVIDER:smtp}
+    brevo-api-key: ${BREVO_API_KEY:}
+  redis:
+    enabled: false
+  firebase:
+    project-id: ${FIREBASE_PROJECT_ID:servicepro-ad08e}
+  bootstrap:
+    admin-name: ${BOOTSTRAP_ADMIN_NAME:Administrator}
+    admin-email: ${BOOTSTRAP_ADMIN_EMAIL:}
+    admin-phone: ${BOOTSTRAP_ADMIN_PHONE:}
+    admin-password: ${BOOTSTRAP_ADMIN_PASSWORD:}

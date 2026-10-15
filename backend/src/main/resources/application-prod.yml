@@ -1,0 +1,37 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://${DB_HOST}:${DB_PORT:5432}/${DB_NAME}?sslmode=${DB_SSLMODE:require}
+    username: ${DB_USER}
+    password: ${DB_PASSWORD}
+    hikari:
+      maximum-pool-size: ${DB_POOL:10}
+      minimum-idle: 2
+      connection-timeout: 10000
+      max-lifetime: 240000     # Neon closes idle connections; recycle before it does
+      keepalive-time: 120000
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:}
+      ssl:
+        enabled: ${REDIS_SSL:false}
+  # REDIS_ENABLED=false: single instance (e.g. Render free tier) with in-memory cache and rate limiter.
+  cache:
+    type: ${CACHE_TYPE:redis}
+    redis:
+      time-to-live: 60s
+management:
+  health:
+    redis:
+      enabled: ${REDIS_ENABLED:true}
+server:
+  forward-headers-strategy: framework
+springdoc:
+  api-docs:
+    enabled: false
+  swagger-ui:
+    enabled: false
+app:
+  redis:
+    enabled: ${REDIS_ENABLED:true}

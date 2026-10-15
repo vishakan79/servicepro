@@ -1,0 +1,71 @@
+# EC2 stack: Caddy (HTTPS, auto certificates) -> API -> RDS PostgreSQL (managed, outside this file) + Redis (local).
+# Usage on the instance:  cp .env.prod.example .env  (fill in)  &&  ./deploy.sh
+services:
+  caddy:
+    image: caddy:2
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      API_DOMAIN: ${API_DOMAIN:?set in .env}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
+    depends_on:
+      api:
+        condition: service_healthy
+
+  api:
+    image: ${API_IMAGE:?set in .env}
+    restart: unless-stopped
+    depends_on:
+      redis:
+        condition: service_healthy
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      DB_HOST: ${DB_HOST:?RDS endpoint}
+      DB_PORT: ${DB_PORT:-5432}
+      DB_NAME: ${DB_NAME:-fieldservicely}
+      DB_USER: ${DB_USER:?set in .env}
+      DB_PASSWORD: ${DB_PASSWORD:?set in .env}
+      DB_SSLMODE: ${DB_SSLMODE:-require}
+      REDIS_HOST: redis
+      JWT_SECRET: ${JWT_SECRET:?set in .env (>= 32 bytes)}
+      CORS_ORIGINS: ${CORS_ORIGINS:?comma-separated frontend origins}
+      FIREBASE_PROJECT_ID: ${FIREBASE_PROJECT_ID:-servicepro-ad08e}
+      BOOTSTRAP_ADMIN_NAME: ${BOOTSTRAP_ADMIN_NAME:-Administrator}
+      BOOTSTRAP_ADMIN_EMAIL: ${BOOTSTRAP_ADMIN_EMAIL:-}
+      BOOTSTRAP_ADMIN_PHONE: ${BOOTSTRAP_ADMIN_PHONE:-}
+      BOOTSTRAP_ADMIN_PASSWORD: ${BOOTSTRAP_ADMIN_PASSWORD:-}
+      FRONTEND_URL: ${FRONTEND_URL:-}
+      JAVA_TOOL_OPTIONS: -XX:MaxRAMPercentage=70 -XX:+ExitOnOutOfMemoryError
+    expose:
+      - "8080" # reachable only from the compose network; Caddy is the single public entry point
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:8080/actuator/health/readiness"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+      start_period: 90s
+    logging:
+      driver: json-file
+      options: { max-size: "20m", max-file: "5" }
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    command: ["redis-server", "--appendonly", "yes", "--maxmemory", "128mb", "--maxmemory-policy", "allkeys-lru"]
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 10
+
+volumes:
+  caddy-data:
+  caddy-config:
+  redis-data:

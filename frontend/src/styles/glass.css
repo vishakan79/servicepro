@@ -1,0 +1,53 @@
+/* ============================================================
+   Glass header: floating rounded bar shared by the public site and the logged-in app.
+   The blur lives on a pseudo-element so fixed descendants (mobile drawer) keep the viewport as containing block.
+   ============================================================ */
+:root {
+  --gl-glass: rgba(255, 255, 255, .72);
+  --gl-glass-hi: rgba(255, 255, 255, .88);
+  --gl-glass-menu: rgba(255, 255, 255, .84);
+  --gl-edge: rgba(255, 255, 255, .6);
+  --gl-ring: rgba(11, 31, 68, .07);
+  --gl-solid: rgba(255, 255, 255, .97);
+}
+header.hdr { position: sticky; top: 12px; z-index: 30; background: transparent; border: 0; border-radius: 18px; margin: 12px auto 0; width: calc(100% - 24px); max-width: 1288px; align-self: center; }
+header.hdr::before { content: ''; position: absolute; inset: 0; z-index: -1; border-radius: inherit; pointer-events: none;
+  background: var(--gl-glass); -webkit-backdrop-filter: blur(16px) saturate(160%); backdrop-filter: blur(16px) saturate(160%);
+  border: 1px solid var(--gl-edge); box-shadow: 0 8px 32px rgba(11, 31, 68, .14), 0 0 0 1px var(--gl-ring), inset 0 1px 0 rgba(255, 255, 255, .55);
+  transition: background-color .3s ease, box-shadow .3s ease; }
+header.hdr.scrolled::before { background: var(--gl-glass-hi); box-shadow: 0 14px 40px rgba(11, 31, 68, .2), 0 0 0 1px var(--gl-ring), inset 0 1px 0 rgba(255, 255, 255, .6); }
+header.hdr.scrolled { box-shadow: none; }
+header.hdr .hdr-in { height: 64px; padding-left: 16px; padding-right: 12px; max-width: none; }
+header.hdr .m-link { height: 64px; border-radius: 10px; transition: color .2s; }
+header.hdr .m-link:hover, header.hdr .m-link:focus-visible { color: var(--accent-d); }
+header.hdr .m-link.on { color: var(--primary); }
+header.hdr .m-link.on::after { content: none; }
+/* animated underline */
+header.hdr .m-link::before { content: ''; position: absolute; left: 12px; right: 12px; bottom: 15px; height: 2px; border-radius: 2px; background: linear-gradient(90deg, var(--accent), #ff8a4a); transform: scaleX(0); transform-origin: left center; transition: transform .32s cubic-bezier(.2, .7, .2, 1); }
+header.hdr .m-link:hover::before, header.hdr .m-link:focus-visible::before, header.hdr .m-link.on::before { transform: scaleX(1); }
+header.hdr .icon-btn:hover, header.hdr .who:hover { background: rgba(11, 31, 68, .07); }
+
+/* dropdowns, mega menu */
+.drop, .mega { background: var(--gl-glass-menu); -webkit-backdrop-filter: blur(18px) saturate(160%); backdrop-filter: blur(18px) saturate(160%); border: 1px solid var(--gl-edge); box-shadow: 0 18px 44px -10px rgba(11, 31, 68, .3), 0 0 0 1px var(--gl-ring); }
+.drop { top: 54px; }
+.drop-i:hover, .drop-b:hover { background: rgba(11, 31, 68, .06); }
+
+/* mobile drawer */
+.scrim { background: rgba(11, 31, 68, .4); -webkit-backdrop-filter: blur(4px); backdrop-filter: blur(4px); }
+.drawer { background: rgba(255, 255, 255, .8); -webkit-backdrop-filter: blur(20px) saturate(160%); backdrop-filter: blur(20px) saturate(160%); border-left: 1px solid var(--gl-edge); box-shadow: -18px 0 48px rgba(11, 31, 68, .22); border-radius: 18px 0 0 18px; }
+
+/* no backdrop-filter support: solid colour fallback */
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  header.hdr::before, header.hdr.scrolled::before { background: var(--gl-solid); }
+  .drop, .mega, .drawer { background: #fff; }
+  .scrim { background: rgba(11, 31, 68, .6); }
+}
+
+@media (max-width: 900px) {
+  header.hdr { top: 8px; margin-top: 8px; width: calc(100% - 16px); border-radius: 16px; }
+  header.hdr .hdr-in { height: 56px; padding-left: 12px; padding-right: 8px; }
+  .drop { top: 48px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  header.hdr::before, header.hdr .m-link::before { transition: none; }
+}

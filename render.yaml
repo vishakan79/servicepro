@@ -1,0 +1,48 @@
+# Render Blueprint for the API. The database is Neon (PostgreSQL); Render itself only runs the Spring Boot container.
+# Values marked `sync: false` are asked for in the Render dashboard on first deploy and never stored in git.
+services:
+  - type: web
+    name: servicepro-api
+    runtime: docker
+    dockerfilePath: ./backend/Dockerfile
+    dockerContext: ./backend
+    plan: free                       # sleeps after 15 min idle (first request then takes about a minute); use "starter" for a real launch
+    region: singapore                # closest to India and to the Neon project
+    healthCheckPath: /actuator/health/readiness
+    envVars:
+      - key: SPRING_PROFILES_ACTIVE
+        value: prod
+      - key: JAVA_TOOL_OPTIONS
+        value: -XX:MaxRAMPercentage=65 -XX:+ExitOnOutOfMemoryError -Xss512k
+      - key: REDIS_ENABLED           # single instance: in-memory cache and rate limiter
+        value: "false"
+      - key: CACHE_TYPE
+        value: simple
+      - key: JWT_SECRET
+        generateValue: true
+      - key: FIREBASE_PROJECT_ID
+        value: servicepro-ad08e
+      - key: DB_PORT
+        value: "5432"
+      - key: DB_SSLMODE
+        value: require
+      - key: DB_POOL
+        value: "5"
+      - key: DB_HOST                 # Neon host, e.g. ep-xxxx.ap-southeast-1.aws.neon.tech
+        sync: false
+      - key: DB_NAME
+        sync: false
+      - key: DB_USER
+        sync: false
+      - key: DB_PASSWORD
+        sync: false
+      - key: CORS_ORIGINS            # your Vercel URL, e.g. https://servicepro.vercel.app (no trailing slash)
+        sync: false
+      - key: BOOTSTRAP_ADMIN_NAME
+        sync: false
+      - key: BOOTSTRAP_ADMIN_EMAIL
+        sync: false
+      - key: BOOTSTRAP_ADMIN_PHONE   # +919876543210
+        sync: false
+      - key: BOOTSTRAP_ADMIN_PASSWORD # 8-72 characters, a letter and a digit
+        sync: false

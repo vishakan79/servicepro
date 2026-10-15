@@ -1,0 +1,14 @@
+# Caddy obtains and renews the Let's Encrypt certificate for API_DOMAIN by itself.
+# WebSocket upgrades (/ws) are proxied automatically.
+{$API_DOMAIN} {
+	encode zstd gzip
+	header {
+		Strict-Transport-Security "max-age=63072000; includeSubDomains"
+		X-Content-Type-Options "nosniff"
+		-Server
+	}
+	reverse_proxy api:8080 {
+		health_uri /actuator/health/readiness
+		health_interval 15s
+	}
+}

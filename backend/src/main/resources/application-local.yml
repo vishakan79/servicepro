@@ -1,0 +1,17 @@
+# Default profile for your own computer: PostgreSQL (a local server, or your Neon database).
+# H2 in-memory instead (data vanishes on restart): SPRING_PROFILES_ACTIVE=dev
+# Put the connection details in backend/config/application-local.yml (git-ignored) or in the DB_* variables.
+spring:
+  datasource:
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:fieldservicely}?sslmode=${DB_SSLMODE:prefer}
+    username: ${DB_USER:postgres}
+    password: ${DB_PASSWORD:}
+  cache:
+    type: simple
+management:
+  health:
+    redis:
+      enabled: false
+app:
+  security:
+    secure-cookies: false   # plain http on localhost
