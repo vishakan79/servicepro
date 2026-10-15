@@ -25,13 +25,13 @@ There is no Google/Microsoft sign-in and no demo account. Sign-in is **email + p
 * Access token is kept in memory only; the httpOnly SameSite=Strict refresh cookie rotates on every use and reuse revokes all sessions.
 * Production refuses to start without a strong `JWT_SECRET` and a Firebase project id.
 
-## Firebase console checklist (project `servicepro-ad08e`)
+## Firebase console checklist (project `servicepro-a8d32`)
 1. Authentication > Sign-in method > **Phone**: enable.
 2. Authentication > Sign-in method > **Email/Password**: enable, and turn on **Email link (passwordless sign-in)**.
 3. Authentication > Settings > **Authorized domains**: add `localhost` and your Vercel domain.
 4. Optional for testing: Phone > "Phone numbers for testing" lets you use a fixed number and code without sending SMS.
 5. Real SMS to Indian numbers may need the Blaze (pay-as-you-go) plan; Firebase shows `auth/billing-not-enabled` otherwise.
 6. Restrict the browser API key to HTTP referrers (your Vercel domain, `localhost:5173/*`).
-7. Firebase's default email sender is `noreply@servicepro-ad08e.firebaseapp.com`; its template can be edited under Authentication > Templates.
+7. Firebase's default email sender is `noreply@servicepro-a8d32.firebaseapp.com`; its template can be edited under Authentication > Templates.
 
 Forgot password: not built yet. An administrator can add the person again after disabling the old account, or reset by database access.
