@@ -44,16 +44,29 @@ export async function sendPhoneCode(phone: string, containerId: string): Promise
     const host = document.getElementById(containerId)
     if (host) host.innerHTML = ''
   }
-  try {
+  const attempt = async (): Promise<ConfirmationResult> => {
     const { authMod, auth } = await load()
     reset()
-    // A fresh child element each attempt: reCAPTCHA refuses to render twice into the same element.
     const host = document.getElementById(containerId)
     if (!host) throw new Error('Security check is not ready. Refresh the page and try again.')
+    // A brand-new element every attempt: reCAPTCHA refuses to render twice into the same element.
     const slot = document.createElement('div')
+    slot.id = `rc-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
     host.appendChild(slot)
     verifier = new authMod.RecaptchaVerifier(auth, slot, { size: 'invisible' })
     return await authMod.signInWithPhoneNumber(auth, phone, verifier)
+  }
+  try {
+    try {
+      return await attempt()
+    } catch (e) {
+      // A previous failed attempt can leave the widget half-registered; one clean retry fixes it.
+      if (/already been rendered/i.test(e instanceof Error ? e.message : String(e))) {
+        reset()
+        return await attempt()
+      }
+      throw e
+    }
   } catch (e) {
     reset()
     throw friendly(e)
