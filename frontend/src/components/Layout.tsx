@@ -36,6 +36,7 @@ export const NAV: { to: string; label: string; icon: typeof Bell; roles: Role[] 
   { to: '/customers', label: 'Customers', icon: Users, roles: STAFF },
   { to: '/technicians', label: 'Technicians', icon: UserCog, roles: STAFF },
   { to: '/inventory', label: 'Inventory', icon: Package, roles: ['ADMIN', 'MANAGER', 'TECHNICIAN'] },
+  { to: '/equipment', label: 'Equipment & AMC', icon: Package, roles: ['ADMIN', 'MANAGER', 'CUSTOMER'] },
   { to: '/invoices', label: 'Invoices', icon: FileText, roles: ['ADMIN', 'MANAGER', 'CUSTOMER'] },
   { to: '/reports', label: 'Reports', icon: BarChart3, roles: STAFF },
   { to: '/feedback', label: 'Feedback', icon: MessageSquare, roles: ['ADMIN', 'MANAGER', 'TECHNICIAN', 'CUSTOMER'] },
