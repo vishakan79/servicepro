@@ -214,3 +214,18 @@
 .mailnote{background:#f3f6fb;border:1px solid #dfe5ee;border-radius:12px;padding:14px;display:grid;gap:8px;color:#0f1b3d}
 .mailnote p{margin:0;font-size:14px}
 .okline{display:flex;align-items:center;gap:6px;margin:0;color:#15803d;font-size:14px;font-weight:600}
+
+/* AI helpers */
+.ai-note { margin-top: 10px; padding: 10px 12px; border-radius: 10px; background: #eef4ff; color: #1e3a6e; font-size: 13.5px; line-height: 1.5; white-space: pre-wrap; }
+.ai-btn { display: inline-flex; align-items: center; gap: 6px; }
+.chat-fab { position: fixed; right: 20px; bottom: 20px; z-index: 60; width: 52px; height: 52px; border-radius: 50%; border: 0; background: #d9540b; color: #fff; display: grid; place-items: center; cursor: pointer; box-shadow: 0 8px 24px rgba(0,0,0,.25); }
+.chat-box { position: fixed; right: 20px; bottom: 84px; z-index: 60; width: min(360px, calc(100vw - 32px)); height: min(480px, 70vh); background: #fff; border-radius: 16px; box-shadow: 0 16px 48px rgba(0,0,0,.28); display: flex; flex-direction: column; overflow: hidden; }
+.chat-h { padding: 12px 14px; background: #0b1f45; color: #fff; font-weight: 600; display: flex; align-items: center; gap: 8px; }
+.chat-b { flex: 1; overflow-y: auto; padding: 12px; display: flex; flex-direction: column; gap: 8px; background: #f6f8fc; }
+.chat-m { margin: 0; padding: 8px 11px; border-radius: 12px; max-width: 85%; font-size: 14px; line-height: 1.45; white-space: pre-wrap; }
+.chat-m.ai { background: #fff; color: #17233a; align-self: flex-start; border: 1px solid #e3e8f2; }
+.chat-m.me { background: #0b1f45; color: #fff; align-self: flex-end; }
+.chat-f { display: flex; gap: 8px; padding: 10px; border-top: 1px solid #e3e8f2; background: #fff; }
+.chat-f input { flex: 1; border: 1px solid #d5dcea; border-radius: 10px; padding: 9px 11px; font: inherit; }
+.chat-f button { border: 0; background: #d9540b; color: #fff; border-radius: 10px; width: 40px; cursor: pointer; display: grid; place-items: center; }
+.chat-f button:disabled { opacity: .5; cursor: default; }

@@ -1,11 +1,12 @@
 import { useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { ChevronDown, ImagePlus, Search, X } from 'lucide-react'
+import { ChevronDown, ImagePlus, Search, Sparkles, X } from 'lucide-react'
 import { useAuth } from '../auth/AuthContext'
 import { useStore } from '../api/store'
 import { ISSUE_TYPES } from '../api/format'
 import { Avatar, Badge, Card, Field, PageHeader } from '../components/ui'
 import { Priority } from '../types'
+import { aiJson, aiMessage } from '../api/ai'
 
 export default function NewRequest() {
   const { user } = useAuth()
@@ -42,6 +43,19 @@ export default function NewRequest() {
   }
 
   const [busy, setBusy] = useState(false)
+  const [aiBusy, setAiBusy] = useState(false)
+  const [aiNote, setAiNote] = useState('')
+  const suggest = async () => {
+    if (desc.trim().length < 10) { setErrs((e) => ({ ...e, desc: 'Describe the issue first (at least 10 characters)' })); return }
+    setAiBusy(true); setAiNote('')
+    try {
+      const r = await aiJson<{ issueType?: string; priority?: string; parts?: string[]; reason?: string }>('TRIAGE', { description: desc.trim(), issueTypes: ISSUE_TYPES })
+      if (r.issueType && ISSUE_TYPES.includes(r.issueType)) setIssue(r.issueType)
+      const p = r.priority && ['High', 'Medium', 'Low'].find((x) => x.toLowerCase() === r.priority!.toLowerCase())
+      if (p) setPri(p as Priority)
+      setAiNote([r.reason, r.parts?.length ? `Likely parts: ${r.parts.join(', ')}` : ''].filter(Boolean).join('\n'))
+    } catch (ex) { setAiNote(aiMessage(ex)) } finally { setAiBusy(false) }
+  }
   const submit = async (e: React.FormEvent) => {
     e.preventDefault()
     const er: Record<string, string> = {}
@@ -129,6 +143,10 @@ export default function NewRequest() {
             <Field label="Description" required error={errs.desc}>
               <textarea className={errs.desc ? 'bad' : ''} value={desc} onChange={(e) => setDesc(e.target.value)} placeholder="Describe the issue in detail..." />
             </Field>
+            <div style={{ marginTop: 8 }}>
+              <button type="button" className="btn sm ai-btn" onClick={suggest} disabled={aiBusy}><Sparkles size={14} /> {aiBusy ? 'Thinking…' : 'Suggest type & priority with AI'}</button>
+              {aiNote && <div className="ai-note">{aiNote}</div>}
+            </div>
             <div style={{ marginTop: 14 }}>
               <span className="field-l">Images (Optional)</span>
               <div className="drop-zone" onClick={() => fileRef.current?.click()} onDragOver={(e) => e.preventDefault()} onDrop={(e) => { e.preventDefault(); addFiles(e.dataTransfer.files) }} role="button" tabIndex={0} onKeyDown={(e) => e.key === 'Enter' && fileRef.current?.click()}>

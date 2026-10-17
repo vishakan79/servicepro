@@ -1,11 +1,12 @@
 import { useMemo, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
-import { Search, Wand2 } from 'lucide-react'
+import { Search, Sparkles, Wand2 } from 'lucide-react'
 import { useAuth } from '../auth/AuthContext'
 import { useStore } from '../api/store'
 import { fmtHour, isoDate } from '../api/format'
 import { Avatar, Badge, Card, Empty, Field, PageHeader, Stars } from '../components/ui'
 import { SKILLS } from '../api/format'
+import { aiJson, aiMessage } from '../api/ai'
 
 const SLOTS = [8, 9, 10, 11, 12, 13, 14, 15, 16, 17]
 
@@ -39,6 +40,20 @@ export default function AssignTechnician() {
     if (e) { setErr(e); return }
     nav(`/work-orders/${w.id}`)
   }
+  const [aiBusy, setAiBusy] = useState(false)
+  const aiPick = async () => {
+    setAiBusy(true); setErr('')
+    try {
+      const techs = s.technicians.map((t) => ({
+        id: t.id, name: t.name, skills: t.skills, rating: t.rating, onLeave: t.status === 'On Leave',
+        jobsThatDay: s.workOrders.filter((o) => o.technicianId === t.id && o.date === date && !['Cancelled', 'Completed'].includes(o.status)).length,
+      }))
+      const r = await aiJson<{ technicianId: number | null; reason?: string }>('ASSIGN', { job: { type: w.serviceType, description: w.description, priority: w.priority, date }, technicians: techs })
+      const t = s.technicians.find((x) => x.id === r.technicianId)
+      if (t) { setTechId(t.id); s.toast(`AI suggests ${t.name}${r.reason ? `: ${r.reason}` : ''}`, 'info') }
+      else s.toast(r.reason || 'AI found no suitable technician', 'info')
+    } catch (ex) { setErr(aiMessage(ex)) } finally { setAiBusy(false) }
+  }
   const auto = () => {
     const t = s.autoPick(w.id)
     if (t) { setTechId(t); setErr(''); s.toast(`Best match: ${s.technicians.find((x) => x.id === t)!.name}`, 'info') }
@@ -48,6 +63,7 @@ export default function AssignTechnician() {
     <>
       <PageHeader title="Assign Technician" sub={`Select a technician for work order ${w.code} (${w.serviceType}).`}>
         <button className="btn" onClick={auto}><Wand2 size={16} /> Auto-assign</button>
+        <button className="btn ai-btn" onClick={aiPick} disabled={aiBusy}><Sparkles size={16} /> {aiBusy ? 'Thinking…' : 'AI recommend'}</button>
       </PageHeader>
       <div className="g-2-1">
         <Card title="Available Technicians">

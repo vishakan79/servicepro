@@ -8,6 +8,7 @@ import { useAuth } from '../auth/AuthContext'
 import { useStore } from '../api/store'
 import { fmtDateTime } from '../api/format'
 import { Avatar } from './ui'
+import ChatWidget from './ChatWidget'
 import { Role } from '../types'
 import '../styles/glass.css'
 
@@ -157,6 +158,7 @@ export default function Layout() {
       </aside>
 
       <main className="content wrap"><Outlet /></main>
+      {user?.role === 'CUSTOMER' && <ChatWidget />}
 
       <footer className="ftr">
         <div className="wrap ftr-in">

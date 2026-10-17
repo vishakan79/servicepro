@@ -1,12 +1,13 @@
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { AlertTriangle, CalendarClock, ClipboardCheck, Inbox, Plus, Wrench } from 'lucide-react'
+import { AlertTriangle, CalendarClock, ClipboardCheck, Inbox, Plus, Sparkles, Wrench } from 'lucide-react'
 import { Area, AreaChart, CartesianGrid, Cell, Legend, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 import { useAuth } from '../auth/AuthContext'
 import { useStore } from '../api/store'
 import { fmtDate, isoDate } from '../api/format'
 import { Badge, Card, PageHeader, StatCard } from '../components/ui'
 import { useScoped } from './scope'
+import { aiMessage, aiRun } from '../api/ai'
 
 const trend = [
   { m: 'Mar', Created: 310, Resolved: 270 }, { m: 'Apr', Created: 380, Resolved: 345 }, { m: 'May', Created: 350, Resolved: 330 },
@@ -22,6 +23,18 @@ export default function Dashboard() {
   const { customers } = useStore()
   const { requests, workOrders } = useScoped()
   const nav = useNavigate()
+  const [sum, setSum] = useState('')
+  const [sumBusy, setSumBusy] = useState(false)
+  const summarise = async () => {
+    setSumBusy(true); setSum('')
+    try {
+      setSum(await aiRun('REPORT_SUMMARY', {
+        totalRequests: requests.length, totalWorkOrders: workOrders.length, active: stats.active, pendingAppointments: stats.pendingAppts, overdue: stats.overdue,
+        slaBreached: workOrders.filter((w) => w.slaBreached).length, statusCounts: Object.fromEntries(stats.pie.map((p) => [p.name, p.value])),
+        highPriorityOpen: workOrders.filter((w) => w.priority === 'High' && !['Completed', 'Cancelled'].includes(w.status)).length,
+      }))
+    } catch (ex) { setSum(aiMessage(ex)) } finally { setSumBusy(false) }
+  }
   const hour = new Date().getHours()
   const greet = hour < 12 ? 'Good Morning' : hour < 17 ? 'Good Afternoon' : 'Good Evening'
   const first = user!.name.split(' ')[0]
@@ -100,6 +113,13 @@ export default function Dashboard() {
           </div>
         </Card>
       </div>
+
+      {(user!.role === 'ADMIN' || user!.role === 'MANAGER') && (
+        <Card title="AI summary">
+          <button type="button" className="btn sm ai-btn" onClick={summarise} disabled={sumBusy}><Sparkles size={14} /> {sumBusy ? 'Thinking…' : 'Summarise the current figures'}</button>
+          {sum && <div className="ai-note">{sum}</div>}
+        </Card>
+      )}
 
       <Card title="Recent Service Requests" action={<Link to="/requests">View All</Link>}>
         <div className="tbl-wrap">

@@ -1,11 +1,12 @@
 import { useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
-import { Mail, MapPin, Phone, UserPlus } from 'lucide-react'
+import { Mail, MapPin, Phone, Sparkles, UserPlus } from 'lucide-react'
 import { useAuth } from '../auth/AuthContext'
 import { useStore } from '../api/store'
 import { fmtDate, fmtDateTime, fmtHour, inr } from '../api/format'
 import { Avatar, Badge, Card, Empty, PageHeader, Stars } from '../components/ui'
 import { WOStatus } from '../types'
+import { aiMessage, aiRun } from '../api/ai'
 import { useScoped } from './scope'
 
 const NEXT: Record<WOStatus, WOStatus[]> = {
@@ -30,6 +31,17 @@ export default function WorkOrderDetail() {
   const [note, setNote] = useState('')
   const [stars, setStars] = useState(0)
   const [comment, setComment] = useState('')
+  const [aiBusy, setAiBusy] = useState('')
+  const [aiOut, setAiOut] = useState('')
+  const ask = async (kind: 'ASSIST' | 'NOTE_SUMMARY') => {
+    setAiBusy(kind); setAiOut('')
+    try {
+      const notes = w!.log.map((l) => l.text).join('\n')
+      setAiOut(await aiRun(kind, kind === 'ASSIST'
+        ? { type: w!.serviceType, description: w!.description, notes }
+        : `Work notes:\n${notes}`))
+    } catch (ex) { setAiOut(aiMessage(ex)) } finally { setAiBusy('') }
+  }
 
   if (!w) {
     return (
@@ -158,6 +170,12 @@ export default function WorkOrderDetail() {
             ))}
           </ul>
           <p className="muted" style={{ marginTop: 12 }}>{w.checklist.filter((c) => c.done).length} of {w.checklist.length} completed</p>
+          {canWork && (
+            <div style={{ marginTop: 12 }}>
+              <button type="button" className="btn sm ai-btn" disabled={!!aiBusy} onClick={() => ask('ASSIST')}><Sparkles size={14} /> {aiBusy === 'ASSIST' ? 'Thinking…' : 'AI troubleshooting help'}</button>
+              {aiOut && <div className="ai-note">{aiOut}</div>}
+            </div>
+          )}
         </Card>
       )}
 
@@ -196,6 +214,12 @@ export default function WorkOrderDetail() {
             <div className="stack" style={{ gap: 8, marginBottom: 14 }}>
               <textarea value={note} onChange={(e) => setNote(e.target.value)} placeholder="Add a work note..." aria-label="Work note" />
               <div><button className="btn p sm" disabled={!note.trim()} onClick={() => { s.addLog(w.id, note.trim(), user!.name); setNote('') }}>Add note</button></div>
+            </div>
+          )}
+          {canWork && w.log.length > 0 && (
+            <div style={{ marginBottom: 12 }}>
+              <button type="button" className="btn sm ai-btn" disabled={!!aiBusy} onClick={() => ask('NOTE_SUMMARY')}><Sparkles size={14} /> {aiBusy === 'NOTE_SUMMARY' ? 'Thinking…' : 'Summarise notes with AI'}</button>
+              {aiOut && <div className="ai-note">{aiOut}</div>}
             </div>
           )}
           <ul className="log">
