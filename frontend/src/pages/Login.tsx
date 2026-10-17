@@ -1,11 +1,10 @@
 import { useEffect, useRef, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
-import type { ConfirmationResult } from 'firebase/auth'
 import { Bell, BarChart3, CalendarDays, CheckCircle2, ClipboardList, Eye, EyeOff, FileText, Globe, KeyRound, Lock, Mail, MapPin, Package, Phone, Settings, ShieldCheck, Users, UserPlus, LogIn } from 'lucide-react'
 import { useAuth } from '../auth/AuthContext'
 import { Logo } from '../components/Layout'
 import * as http from '../api/http'
-import { completeEmailLink, confirmPhoneCode, isEmailLink, rememberedEmail, sendEmailLink, sendPhoneCode } from '../auth/firebase'
+import { completeEmailLink, isEmailLink, rememberedEmail, sendEmailLink } from '../auth/firebase'
 
 const features = [
   { icon: FileText, label: 'Service Requests' },
@@ -91,13 +90,10 @@ export default function Login({ initial = 'login' }: { initial?: 'login' | 'regi
   const [password2, setPassword2] = useState('')
   const [dial, setDial] = useState('+91')
   const [mobile, setMobile] = useState('')
-  const [smsCode, setSmsCode] = useState('')
-  const [smsSent, setSmsSent] = useState(false)
   const [name, setName] = useState('')
   const [role, setRole] = useState('CUSTOMER')
   const [address, setAddress] = useState('')
   const [askEmail, setAskEmail] = useState(false)
-  const confirmation = useRef<ConfirmationResult | null>(null)
   const emailToken = useRef<string>('')
 
   const phone = toE164(dial, mobile)
@@ -105,8 +101,7 @@ export default function Login({ initial = 'login' }: { initial?: 'login' | 'regi
   const restore = (d: Draft) => { setName(d.name); setEmail(d.email); setDial(d.dial); setMobile(d.mobile); setRole(d.role); setAddress(d.address) }
 
   const reset = (m: 'login' | 'register') => {
-    setMode(m); setStep('details'); setErr(''); setInfo(''); setDone(''); setSmsCode(''); setSmsSent(false); setPassword(''); setPassword2('')
-    confirmation.current = null
+    setMode(m); setStep('details'); setErr(''); setInfo(''); setDone(''); setPassword(''); setPassword2('')
     nav(m === 'register' ? '/register' : '/login', { replace: true, state: loc.state })
   }
   const run = async (fn: () => Promise<void>) => {
@@ -173,18 +168,12 @@ export default function Login({ initial = 'login' }: { initial?: 'login' | 'regi
     if (!EMAIL_OK.test(email.trim())) throw new Error('Enter a valid email address')
     await finishEmailLink(email.trim(), !loadDraft())
   })
-  const sendSms = () => run(async () => {
+  const finishRegister = () => run(async () => {
     if (!PASSWORD_OK.test(password)) throw new Error('Password must be 8-72 characters with at least one letter and one digit')
     if (password !== password2) throw new Error('The two passwords do not match')
-    confirmation.current = await sendPhoneCode(phone, 'recaptcha-box')
-    setSmsSent(true); setInfo(`We sent an SMS code to ${phone}.`); startCountdown()
-  })
-  const finishRegister = () => run(async () => {
-    if (!confirmation.current) throw new Error('Request the SMS code first')
     if (!emailToken.current) throw new Error('Verify your email first')
-    const phoneIdToken = await confirmPhoneCode(confirmation.current, smsCode)
-    const r = await http.registerAccount({ name: name.trim(), email: email.trim(), phone, role, address: address.trim() || undefined, password, emailIdToken: emailToken.current, phoneIdToken })
-    clearDraft(); emailToken.current = ''; setPassword(''); setPassword2(''); setSmsCode(''); setSmsSent(false)
+    const r = await http.registerAccount({ name: name.trim(), email: email.trim(), phone, role, address: address.trim() || undefined, password, emailIdToken: emailToken.current })
+    clearDraft(); emailToken.current = ''; setPassword(''); setPassword2('')
     if (r.status === 'ACTIVE') { reset('login'); setInfo('Your account is ready. Sign in with your email and password.') }
     else setDone(r.message)
   })
@@ -195,7 +184,7 @@ export default function Login({ initial = 'login' }: { initial?: 'login' | 'regi
     if (mode === 'login') return signIn()
     if (step === 'details') return sendLink()
     if (step === 'emailSent') return askEmail ? confirmTypedEmail() : undefined
-    return smsSent ? finishRegister() : sendSms()
+    return finishRegister()
   }
 
   const stepNo = step === 'details' ? 1 : step === 'emailSent' ? 2 : 3
@@ -241,7 +230,7 @@ export default function Login({ initial = 'login' }: { initial?: 'login' | 'regi
                 <ol className="vsteps" aria-label="Registration steps">
                   <li className={stepNo >= 1 ? 'on' : ''}>Details</li>
                   <li className={stepNo >= 2 ? 'on' : ''}>Email link</li>
-                  <li className={stepNo >= 3 ? 'on' : ''}>Password and SMS</li>
+                  <li className={stepNo >= 3 ? 'on' : ''}>Set password</li>
                 </ol>
               )}
 
@@ -293,13 +282,6 @@ export default function Login({ initial = 'login' }: { initial?: 'login' | 'regi
                   <p className="okline"><CheckCircle2 size={16} /> Email verified: {email.trim()}</p>
                   <PasswordInput label="Choose a password" value={password} onChange={setPassword} auto="new-password" hint="8+ characters, a letter and a digit" />
                   <PasswordInput label="Confirm password" value={password2} onChange={setPassword2} auto="new-password" />
-                  {smsSent && <CodeInput label={`SMS code sent to ${phone}`} value={smsCode} onChange={setSmsCode} />}
-                  {smsSent && (
-                    <div className="row">
-                      <span />
-                      <button type="button" className="link" disabled={left > 0 || busy} onClick={sendSms}>{left > 0 ? `Resend in ${left}s` : 'Resend SMS code'}</button>
-                    </div>
-                  )}
                 </>
               )}
 
@@ -307,12 +289,12 @@ export default function Login({ initial = 'login' }: { initial?: 'login' | 'regi
               {info && !err && <div className="info" role="status">{info}</div>}
 
               {!(mode === 'register' && step === 'emailSent' && !askEmail) && (
-                <button type="submit" className="btn p big" disabled={busy || (mode === 'register' && step === 'verify' && smsSent && smsCode.length !== 6)}>
+                <button type="submit" className="btn p big" disabled={busy}>
                   {busy ? 'Please wait…'
                     : mode === 'login' ? <><LogIn size={18} /> Sign in</>
                     : step === 'details' ? <><Mail size={18} /> Verify my email</>
                     : step === 'emailSent' ? <><Mail size={18} /> Confirm email</>
-                    : smsSent ? <><ShieldCheck size={18} /> Create account</> : <><Phone size={18} /> Send SMS code</>}
+                    : <><ShieldCheck size={18} /> Create account</>}
                 </button>
               )}
 
@@ -324,7 +306,6 @@ export default function Login({ initial = 'login' }: { initial?: 'login' | 'regi
               <p className="muted center small">{mode === 'login' ? 'Forgot your password? Ask your administrator to reset it.' : 'Administrator accounts are created by an existing administrator.'}</p>
             </>
           )}
-          <div id="recaptcha-box" />
         </form>
       </section>
     </div>

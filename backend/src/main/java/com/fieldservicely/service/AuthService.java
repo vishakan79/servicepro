@@ -114,8 +114,6 @@ public class AuthService {
         String key = "reg|" + clientIp + "|" + email;
         if (limiter.isBlocked(key)) throw new ApiException.TooManyRequests("Too many failed attempts. Try again later.");
         try {
-            String provenPhone = firebase.verifyPhone(in.phoneIdToken());
-            if (!provenPhone.equals(phone)) throw new ApiException.Unauthorized("The verified mobile number does not match the one entered.");
             String provenEmail = firebase.verifyEmail(in.emailIdToken());
             if (!provenEmail.equals(email)) throw new ApiException.Unauthorized("The verified email address does not match the one entered.");
         } catch (ApiException.Unauthorized ex) {
@@ -131,7 +129,7 @@ public class AuthService {
         u.setPasswordHash(encoder.encode(in.password()));
         u.setRole(in.role());
         u.setEmailVerified(true);
-        u.setPhoneVerified(true);
+        u.setPhoneVerified(false);
         boolean customer = in.role() == Role.CUSTOMER;
         u.setEnabled(customer);
         u.setApprovalPending(!customer);

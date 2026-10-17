@@ -64,7 +64,7 @@ class ApiIntegrationTest {
     void registrationNeedsBothFirebaseProofs() throws Exception {
         mvc.perform(post("/api/auth/register").contentType(MediaType.APPLICATION_JSON)
                         .content("{\"name\":\"A\",\"email\":\"new@example.com\",\"phone\":\"+919876500001\",\"role\":\"CUSTOMER\","
-                                + "\"address\":\"1 Main St\",\"password\":\"abcdefg1\",\"emailIdToken\":\"not.a.jwt\",\"phoneIdToken\":\"not.a.jwt\"}"))
+                                + "\"address\":\"1 Main St\",\"password\":\"abcdefg1\",\"emailIdToken\":\"not.a.jwt\"}"))
                 .andExpect(status().isUnauthorized());
     }
 
@@ -72,7 +72,7 @@ class ApiIntegrationTest {
     void weakPasswordIsRejected() throws Exception {
         mvc.perform(post("/api/auth/register").contentType(MediaType.APPLICATION_JSON)
                         .content("{\"name\":\"A\",\"email\":\"new@example.com\",\"phone\":\"+919876500001\",\"role\":\"CUSTOMER\","
-                                + "\"address\":\"1 Main St\",\"password\":\"short\",\"emailIdToken\":\"x\",\"phoneIdToken\":\"x\"}"))
+                                + "\"address\":\"1 Main St\",\"password\":\"short\",\"emailIdToken\":\"x\"}"))
                 .andExpect(status().isBadRequest());
     }
 

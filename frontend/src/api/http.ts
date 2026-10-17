@@ -69,8 +69,8 @@ export interface RegisterDetails { name: string; email: string; phone: string; r
 export interface RegisterResponse { status: 'ACTIVE' | 'PENDING_APPROVAL'; message: string }
 /** Checks the role, email and mobile are free to use. Sends nothing. */
 export const registerStart = (d: RegisterDetails) => authPost<void>('/register/start', d)
-/** Both ids come from Firebase: the email-link sign-in and the SMS-code sign-in. No session is created; the person signs in next. */
-export const registerAccount = (d: RegisterDetails & { password: string; emailIdToken: string; phoneIdToken: string }) =>
+/** The id comes from Firebase's email-link sign-in. No session is created; the person signs in next. */
+export const registerAccount = (d: RegisterDetails & { password: string; emailIdToken: string }) =>
   authPost<RegisterResponse>('/register', d)
 
 export async function logout(): Promise<void> {

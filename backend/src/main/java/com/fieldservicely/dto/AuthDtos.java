@@ -21,12 +21,11 @@ public final class AuthDtos {
     public record RegisterStart(@NotBlank @Size(max = 120) String name, @NotBlank @Email @Size(max = 160) String email,
                                 @NotBlank @Size(max = 30) String phone, @NotNull Role role, @Size(max = 300) String address) {}
 
-    /** Step 2: both Firebase proofs (email link and SMS code), the same details, and the password chosen by the person. */
+    /** Step 2: the Firebase email-link proof, the same details, and the password chosen by the person. */
     public record RegisterRequest(@NotBlank @Size(max = 120) String name, @NotBlank @Email @Size(max = 160) String email,
                                   @NotBlank @Size(max = 30) String phone, @NotNull Role role, @Size(max = 300) String address,
                                   @NotBlank @Pattern(regexp = PASSWORD_RULE, message = PASSWORD_MSG) String password,
-                                  @NotBlank @Size(max = 4096) String emailIdToken,
-                                  @NotBlank @Size(max = 4096) String phoneIdToken) {}
+                                  @NotBlank @Size(max = 4096) String emailIdToken) {}
 
     public record UserView(Long id, String name, String email, String phone, Role role, Long customerId, Long technicianId,
                            boolean enabled, boolean approvalPending) {
