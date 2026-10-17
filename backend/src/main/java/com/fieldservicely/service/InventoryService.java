@@ -3,6 +3,7 @@ package com.fieldservicely.service;
 import com.fieldservicely.dto.PageResponse;
 import com.fieldservicely.dto.PartDtos.CreatePart;
 import com.fieldservicely.dto.PartDtos.PartView;
+import com.fieldservicely.dto.PartDtos.UpdatePart;
 import com.fieldservicely.entity.Part;
 import com.fieldservicely.exception.ApiException;
 import com.fieldservicely.repository.PartRepository;
@@ -50,8 +51,10 @@ public class InventoryService {
 
     @Transactional
     public PartView create(CreatePart in, AuthUser u) {
+        String code = in.code().trim().toUpperCase();
+        if (parts.existsByCode(code)) throw new ApiException.Conflict("Item code " + code + " already exists");
         Part p = new Part();
-        p.setCode(in.code().trim().toUpperCase());
+        p.setCode(code);
         p.setName(in.name().trim());
         p.setCategory(in.category().trim());
         p.setBrand(in.brand().trim());
@@ -60,6 +63,21 @@ public class InventoryService {
         p.setUnitPrice(in.unitPrice());
         parts.save(p);
         audit.record(u, "CREATE", "Part", p.getId(), p.getCode());
+        return PartView.of(p);
+    }
+
+    @Transactional
+    public PartView update(Long id, UpdatePart in, AuthUser u) {
+        Part p = parts.findById(id).orElseThrow(() -> new ApiException.NotFound("Part not found"));
+        int before = p.getStock();
+        p.setName(in.name().trim());
+        p.setCategory(in.category().trim());
+        p.setBrand(in.brand().trim());
+        p.setStock(in.stock());
+        p.setReorderLevel(in.reorderLevel());
+        p.setUnitPrice(in.unitPrice());
+        parts.save(p);
+        audit.record(u, "UPDATE", "Part", p.getId(), p.getCode() + " stock " + before + "->" + in.stock());
         return PartView.of(p);
     }
 

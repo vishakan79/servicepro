@@ -125,7 +125,7 @@ public class WorkOrderService {
                 if (in.customerId() == null) throw new ApiException.BadRequest("customerId is required");
                 yield in.customerId();
             }
-            case TECHNICIAN -> throw new ApiException.Forbidden("Technicians cannot create service requests");
+            case TECHNICIAN, INVENTORY_MANAGER -> throw new ApiException.Forbidden("Your role cannot create service requests");
         };
         Customer customer = customers.findById(customerId).orElseThrow(() -> new ApiException.BadRequest("Unknown customer"));
         if (!SkillCatalog.isKnown(in.issueType())) throw new ApiException.BadRequest("Unknown issue type");
@@ -176,7 +176,7 @@ public class WorkOrderService {
         Page<ServiceRequest> page = switch (u.role()) {
             case CUSTOMER -> requests.findByCustomerId(u.customerId(), pageable);
             case ADMIN, MANAGER -> requests.findAll(pageable);
-            case TECHNICIAN -> throw new ApiException.Forbidden("Technicians cannot list service requests");
+            case TECHNICIAN, INVENTORY_MANAGER -> throw new ApiException.Forbidden("Your role cannot list service requests");
         };
         return PageResponse.of(page, mapper.requests(page.getContent()));
     }
@@ -442,6 +442,7 @@ public class WorkOrderService {
         Page<Feedback> page = switch (u.role()) {
             case ADMIN, MANAGER -> feedback.findAll(pageable);
             case CUSTOMER -> feedback.findByCustomerId(u.customerId(), pageable);
+            case INVENTORY_MANAGER -> Page.empty(pageable);
             case TECHNICIAN -> {
                 List<Long> mine = workOrders.findAll(WorkOrderScopes.of(u)).stream().map(WorkOrder::getId).toList();
                 List<Feedback> all = mine.isEmpty() ? List.of() : feedback.findByWorkOrderIdIn(mine).stream()

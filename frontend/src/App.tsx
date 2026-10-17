@@ -39,7 +39,7 @@ export default function App() {
       <Route path="/forgot-password" element={<ForgotPassword />} />
       <Route path="/forbidden" element={<div style={{ padding: 40 }}><h1>403 - You don't have access to this page</h1></div>} />
       <Route element={<RequireRole><Layout /></RequireRole>}>
-        <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/dashboard" element={user?.role === 'INVENTORY_MANAGER' ? <Navigate to="/inventory" replace /> : <Dashboard />} />
         <Route path="/requests" element={<RequireRole roles={['ADMIN', 'MANAGER', 'CUSTOMER']}><Requests /></RequireRole>} />
         <Route path="/requests/new" element={<RequireRole roles={['ADMIN', 'MANAGER', 'CUSTOMER']}><NewRequest /></RequireRole>} />
         <Route path="/my-jobs" element={<RequireRole roles={['TECHNICIAN']}><MyJobs /></RequireRole>} />
@@ -50,7 +50,7 @@ export default function App() {
         <Route path="/tracking" element={<RequireRole roles={[...STAFF]}><Tracking /></RequireRole>} />
         <Route path="/customers" element={<RequireRole roles={[...STAFF]}><Customers /></RequireRole>} />
         <Route path="/technicians" element={<RequireRole roles={[...STAFF]}><Technicians /></RequireRole>} />
-        <Route path="/inventory" element={<RequireRole roles={['ADMIN', 'MANAGER', 'TECHNICIAN']}><Inventory /></RequireRole>} />
+        <Route path="/inventory" element={<RequireRole roles={['ADMIN', 'MANAGER', 'TECHNICIAN', 'INVENTORY_MANAGER']}><Inventory /></RequireRole>} />
         <Route path="/invoices" element={<RequireRole roles={['ADMIN', 'MANAGER', 'CUSTOMER']}><InvoiceList /></RequireRole>} />
         <Route path="/invoices/:id" element={<RequireRole roles={['ADMIN', 'MANAGER', 'CUSTOMER']}><InvoiceDetail /></RequireRole>} />
         <Route path="/reports" element={<RequireRole roles={[...STAFF]}><Reports /></RequireRole>} />

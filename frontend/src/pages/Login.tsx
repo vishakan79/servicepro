@@ -19,7 +19,7 @@ const features = [
 ]
 
 const COUNTRIES = [['+91', 'India +91'], ['+1', 'US/Canada +1'], ['+44', 'UK +44'], ['+971', 'UAE +971'], ['+65', 'Singapore +65'], ['+61', 'Australia +61']]
-const ROLES: [string, string][] = [['CUSTOMER', 'Customer'], ['TECHNICIAN', 'Technician (needs admin approval)'], ['MANAGER', 'Manager (needs admin approval)']]
+const ROLES: [string, string][] = [['CUSTOMER', 'Customer'], ['TECHNICIAN', 'Technician (needs admin approval)'], ['MANAGER', 'Manager (needs admin approval)'], ['INVENTORY_MANAGER', 'Inventory Manager (needs admin approval)']]
 const RESEND_SECONDS = 60
 const DRAFT_KEY = 'sp.regdraft'
 const TOKEN_KEY = 'sp.emailIdToken'

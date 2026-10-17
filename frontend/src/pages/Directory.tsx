@@ -91,10 +91,10 @@ export function Users() {
           <input required type="tel" maxLength={15} placeholder="Mobile (e.g. 98765 43210)" value={form.mobile} onChange={(e) => setForm({ ...form, mobile: e.target.value })} />
           <input required type="text" minLength={8} maxLength={72} autoComplete="off" placeholder="First password (8+, letter and digit)" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} />
           <select value={form.dial} onChange={(e) => setForm({ ...form, dial: e.target.value })}><option>+91</option><option>+1</option><option>+44</option><option>+971</option><option>+65</option><option>+61</option></select>
-          <select value={form.role} onChange={(e) => setForm({ ...form, role: e.target.value })}><option value="MANAGER">Manager</option><option value="TECHNICIAN">Technician</option><option value="ADMIN">Admin</option></select>
+          <select value={form.role} onChange={(e) => setForm({ ...form, role: e.target.value })}><option value="MANAGER">Manager</option><option value="TECHNICIAN">Technician</option><option value="INVENTORY_MANAGER">Inventory Manager</option><option value="ADMIN">Admin</option></select>
           <button className="btn p" disabled={busy}>Add</button>
         </form>
-        <p className="muted" style={{ marginTop: 8 }}>You set their first password and give it to them in person; it is stored only as a hash. Staff who register themselves are verified by SMS and email link, then wait here for Approve.</p>
+        <p className="muted" style={{ marginTop: 8 }}>You set their first password and give it to them in person; it is stored only as a hash. Staff who register themselves verify their email, then wait here for Approve.</p>
       </Card>
       <Card>
         <div className="tbl-wrap">

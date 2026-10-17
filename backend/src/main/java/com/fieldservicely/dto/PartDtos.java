@@ -29,5 +29,14 @@ public final class PartDtos {
             @Min(0) @Max(1_000_000) int reorderLevel,
             @NotNull @DecimalMin("0.00") BigDecimal unitPrice) {}
 
+    /** Code stays fixed; stock here is a stock-take correction (set to the counted quantity). */
+    public record UpdatePart(
+            @NotBlank @Size(max = 120) String name,
+            @NotBlank @Size(max = 60) String category,
+            @NotBlank @Size(max = 60) String brand,
+            @Min(0) @Max(1_000_000) int stock,
+            @Min(0) @Max(1_000_000) int reorderLevel,
+            @NotNull @DecimalMin("0.00") BigDecimal unitPrice) {}
+
     public record RestockRequest(@Min(1) @Max(100_000) int quantity) {}
 }

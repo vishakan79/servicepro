@@ -45,6 +45,7 @@ export function ApiStoreProvider({ children }: { children: ReactNode }) {
 
   // ---- loading -------------------------------------------------------------------------------
   const loadWorkOrders = useCallback(async () => {
+    if (role === 'INVENTORY_MANAGER') { setRequests([]); setWO([]); return }
     const [summaries, reqs] = await Promise.all([
       fetchAll<SummaryDto>('/work-orders'),
       role === 'TECHNICIAN' ? Promise.resolve([] as RequestDto[]) : fetchAll<RequestDto>('/requests'),
@@ -59,7 +60,7 @@ export function ApiStoreProvider({ children }: { children: ReactNode }) {
   }, [role])
 
   const loadInvoices = useCallback(async () => {
-    if (role === 'TECHNICIAN') return setInv([])
+    if (role === 'TECHNICIAN' || role === 'INVENTORY_MANAGER') return setInv([])
     const list = await fetchAll<{ id: number }>('/invoices')
     const full = await Promise.all(list.map((i) => api<InvoiceDto>(`/invoices/${i.id}`)))
     setInv(full.map(toInvoice))
@@ -206,6 +207,17 @@ export function ApiStoreProvider({ children }: { children: ReactNode }) {
     }, undefined)
   }
 
+  const saveItem: Store['saveItem'] = async (item, id) => {
+    try {
+      const body = { name: item.name, category: item.category, brand: item.brand, stock: item.stock, reorderLevel: item.reorder, unitPrice: item.price }
+      if (id) await api(`/parts/${id}`, { method: 'PUT', body })
+      else await api('/parts', { method: 'POST', body: { ...body, code: item.code } })
+      await loadParts()
+      toast(id ? 'Item updated' : 'Item added to inventory', 'ok')
+      return null
+    } catch (e) { return msg(e) }
+  }
+
   const markPaid: Store['markPaid'] = async (invId, method) => {
     await run(async () => {
       await api(`/invoices/${invId}/pay`, { method: 'POST', body: { method } })
@@ -229,7 +241,7 @@ export function ApiStoreProvider({ children }: { children: ReactNode }) {
     () => ({
       customers, technicians, requests, workOrders, parts, invoices, toasts, activity, unread,
       markRead: () => setUnread(0), toast, dismiss, addCustomer, createRequest, assign, autoPick, setStatus, punch, toggleCheck, addLog,
-      addPart, restock, markPaid, rate, techStatusOf,
+      addPart, restock, saveItem, markPaid, rate, techStatusOf,
     }),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [customers, technicians, requests, workOrders, parts, invoices, toasts, activity, unread, techStatusOf, reload],

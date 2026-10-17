@@ -35,14 +35,14 @@ export const NAV: { to: string; label: string; icon: typeof Bell; roles: Role[] 
   { to: '/tracking', label: 'Live Tracking', icon: MapPin, roles: STAFF },
   { to: '/customers', label: 'Customers', icon: Users, roles: STAFF },
   { to: '/technicians', label: 'Technicians', icon: UserCog, roles: STAFF },
-  { to: '/inventory', label: 'Inventory', icon: Package, roles: ['ADMIN', 'MANAGER', 'TECHNICIAN'] },
+  { to: '/inventory', label: 'Inventory', icon: Package, roles: ['ADMIN', 'MANAGER', 'TECHNICIAN', 'INVENTORY_MANAGER'] },
   { to: '/equipment', label: 'Equipment & AMC', icon: Package, roles: ['ADMIN', 'MANAGER', 'CUSTOMER'] },
   { to: '/invoices', label: 'Invoices', icon: FileText, roles: ['ADMIN', 'MANAGER', 'CUSTOMER'] },
   { to: '/reports', label: 'Reports', icon: BarChart3, roles: STAFF },
   { to: '/feedback', label: 'Feedback', icon: MessageSquare, roles: ['ADMIN', 'MANAGER', 'TECHNICIAN', 'CUSTOMER'] },
   { to: '/users', label: 'Users & Roles', icon: ShieldCheck, roles: ['ADMIN'] },
   { to: '/inquiries', label: 'Demo requests', icon: Inbox, roles: ['ADMIN'] },
-  { to: '/settings', label: 'Settings', icon: Cog, roles: ALL },
+  { to: '/settings', label: 'Settings', icon: Cog, roles: [...ALL, 'INVENTORY_MANAGER'] },
 ]
 
 const PRIMARY = 5 // items shown in the header bar; the rest sit under "More"
@@ -75,7 +75,7 @@ export default function Layout() {
   const items = NAV.filter((n) => n.roles.includes(user.role))
   const main = items.slice(0, PRIMARY)
   const rest = items.slice(PRIMARY)
-  const canCreate = user.role !== 'TECHNICIAN'
+  const canCreate = user.role !== 'TECHNICIAN' && user.role !== 'INVENTORY_MANAGER'
   const has = (to: string) => items.some((n) => n.to === to)
   const fl = (to: string, label: string) => (has(to) ? <Link to={to}>{label}</Link> : null)
   const moreActive = rest.some((n) => loc.pathname.startsWith(n.to))

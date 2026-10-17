@@ -36,6 +36,7 @@ export interface Store {
   addLog: (woId: number, text: string, by: string) => Promise<void>
   addPart: (woId: number, partId: number, qty: number) => Promise<string | null>
   restock: (partId: number, qty: number) => Promise<void>
+  saveItem: (item: { code: string; name: string; category: string; brand: string; stock: number; reorder: number; price: number }, id?: number) => Promise<string | null>
   markPaid: (invId: number, method: string) => Promise<void>
   rate: (woId: number, stars: number, comment: string) => Promise<void>
   techStatusOf: (t: Technician) => Technician['status']

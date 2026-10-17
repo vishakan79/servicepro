@@ -61,7 +61,7 @@ public class ReportService {
         long total = switch (u.role()) {
             case ADMIN, MANAGER -> requests.count();
             case CUSTOMER -> u.customerId() == null ? 0 : requests.countByCustomerId(u.customerId());
-            case TECHNICIAN -> workOrders.count(scope);
+            case TECHNICIAN, INVENTORY_MANAGER -> workOrders.count(scope);
         };
         long active = workOrders.count(scope.and((r, q, cb) -> r.get("status").in(WorkOrderStatus.ACTIVE)));
         long pending = workOrders.count(scope

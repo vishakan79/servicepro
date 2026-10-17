@@ -14,6 +14,7 @@ public final class WorkOrderScopes {
             case ADMIN, MANAGER -> cb.conjunction();
             case CUSTOMER -> u.customerId() == null ? cb.disjunction() : cb.equal(root.get("customerId"), u.customerId());
             case TECHNICIAN -> u.technicianId() == null ? cb.disjunction() : cb.equal(root.get("technicianId"), u.technicianId());
+            case INVENTORY_MANAGER -> cb.disjunction();
         };
     }
 
@@ -22,6 +23,7 @@ public final class WorkOrderScopes {
             case ADMIN, MANAGER -> true;
             case CUSTOMER -> u.customerId() != null && Objects.equals(w.getCustomerId(), u.customerId());
             case TECHNICIAN -> u.technicianId() != null && Objects.equals(w.getTechnicianId(), u.technicianId());
+            case INVENTORY_MANAGER -> false;
         };
     }
 }

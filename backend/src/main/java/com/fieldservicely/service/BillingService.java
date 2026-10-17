@@ -101,7 +101,7 @@ public class BillingService {
         Page<Invoice> page = switch (u.role()) {
             case ADMIN, MANAGER -> invoices.findAll(pageable);
             case CUSTOMER -> invoices.findByCustomerId(u.customerId(), pageable);
-            case TECHNICIAN -> throw new ApiException.Forbidden("Technicians cannot view invoices");
+            case TECHNICIAN, INVENTORY_MANAGER -> throw new ApiException.Forbidden("Your role cannot view invoices");
         };
         List<Long> ids = page.getContent().stream().map(Invoice::getId).toList();
         Map<Long, List<InvoiceLine>> byInvoice = ids.isEmpty() ? Map.of()
@@ -141,7 +141,7 @@ public class BillingService {
         boolean ok = switch (u.role()) {
             case ADMIN, MANAGER -> true;
             case CUSTOMER -> u.customerId() != null && u.customerId().equals(inv.getCustomerId());
-            case TECHNICIAN -> false;
+            case TECHNICIAN, INVENTORY_MANAGER -> false;
         };
         if (!ok) throw new ApiException.NotFound("Invoice not found");
         return inv;

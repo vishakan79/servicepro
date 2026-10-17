@@ -48,7 +48,7 @@ public class AuthService {
 
     private static final Logger log = LoggerFactory.getLogger(AuthService.class);
     private static final SecureRandom RANDOM = new SecureRandom();
-    private static final Set<Role> SELF_REGISTER = EnumSet.of(Role.CUSTOMER, Role.TECHNICIAN, Role.MANAGER);
+    private static final Set<Role> SELF_REGISTER = EnumSet.of(Role.CUSTOMER, Role.TECHNICIAN, Role.MANAGER, Role.INVENTORY_MANAGER);
     private static final String BAD_LOGIN = "Incorrect email or password.";
 
     private final UserRepository users;
