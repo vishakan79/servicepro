@@ -42,13 +42,13 @@ public class AiService {
 
     public AiService(ObjectMapper mapper,
                      @Value("${GROQ_API_KEY:}") String apiKey,
-                     @Value("${GROQ_MODEL:llama-3.3-70b-versatile}") String model) {
+                     @Value("${GROQ_MODEL:openai/gpt-oss-20b}") String model) {
         this.mapper = mapper;
         this.apiKey = apiKey == null ? "" : apiKey.trim();
         List<String> list = new ArrayList<>();
         list.add(model.trim());
         // Fallbacks, tried in order, when a model is retired or this key has no access to it.
-        for (String m : List.of("llama-3.3-70b-versatile", "openai/gpt-oss-20b", "llama-3.1-8b-instant", "openai/gpt-oss-120b")) {
+        for (String m : List.of("openai/gpt-oss-20b", "openai/gpt-oss-120b", "qwen/qwen3.8-27b", "llama-3.3-70b-versatile", "llama-3.1-8b-instant")) {
             if (!list.contains(m)) list.add(m);
         }
         this.models = List.copyOf(list);
@@ -89,7 +89,8 @@ public class AiService {
             var body = mapper.createObjectNode();
             body.put("model", model);
             body.put("temperature", 0.3);
-            body.put("max_tokens", 1500);
+            body.put("max_tokens", 1200);
+            if (model.startsWith("openai/gpt-oss")) body.put("reasoning_effort", "low"); // reasoning models: keep thinking short so the answer fits
             var msgs = body.putArray("messages");
             msgs.addObject().put("role", "system").put("content", system);
             msgs.addObject().put("role", "user").put("content", input);
