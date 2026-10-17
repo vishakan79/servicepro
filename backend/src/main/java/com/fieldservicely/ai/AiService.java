@@ -47,7 +47,10 @@ public class AiService {
         this.apiKey = apiKey == null ? "" : apiKey.trim();
         List<String> list = new ArrayList<>();
         list.add(model.trim());
-        if (!list.contains("llama-3.1-8b-instant")) list.add("llama-3.1-8b-instant"); // fallback if the first model is retired
+        // Fallbacks, tried in order, when a model is retired or this key has no access to it.
+        for (String m : List.of("llama-3.3-70b-versatile", "openai/gpt-oss-20b", "llama-3.1-8b-instant", "openai/gpt-oss-120b")) {
+            if (!list.contains(m)) list.add(m);
+        }
         this.models = List.copyOf(list);
     }
 
@@ -65,7 +68,9 @@ public class AiService {
                 String text = call(model, system, input, task.json());
                 if (task.json()) {
                     try {
-                        return mapper.writeValueAsString(mapper.readTree(text));
+                        int a = text.indexOf('{'), b = text.lastIndexOf('}');
+                        if (a < 0 || b <= a) throw new IllegalArgumentException("no json");
+                        return mapper.writeValueAsString(mapper.readTree(text.substring(a, b + 1)));
                     } catch (Exception e) {
                         throw new ApiException(HttpStatus.BAD_GATEWAY, "The AI answered in an unexpected format. Try again.");
                     }
@@ -84,8 +89,7 @@ public class AiService {
             var body = mapper.createObjectNode();
             body.put("model", model);
             body.put("temperature", 0.3);
-            body.put("max_tokens", 700);
-            if (json) body.putObject("response_format").put("type", "json_object");
+            body.put("max_tokens", 1500);
             var msgs = body.putArray("messages");
             msgs.addObject().put("role", "system").put("content", system);
             msgs.addObject().put("role", "user").put("content", input);
@@ -98,7 +102,7 @@ public class AiService {
             HttpResponse<String> res = http.send(req, HttpResponse.BodyHandlers.ofString());
             int code = res.statusCode();
             if (code == 429) throw new ApiException(HttpStatus.TOO_MANY_REQUESTS, "The AI is busy (free limit reached). Try again in a minute.");
-            if (code == 400 || code == 404) throw new ModelUnavailable("HTTP " + code + " " + abbreviate(res.body()));
+            if (code == 400 || code == 403 || code == 404) throw new ModelUnavailable("HTTP " + code + " " + abbreviate(res.body()));
             if (code != 200) {
                 log.warn("Groq returned HTTP {}: {}", code, abbreviate(res.body()));
                 throw new ApiException(HttpStatus.BAD_GATEWAY, "The AI service returned an error. Try again later.");
