@@ -7,6 +7,9 @@ import com.fieldservicely.dto.AuthDtos.RegisterRequest;
 import com.fieldservicely.dto.AuthDtos.RegisterResponse;
 import com.fieldservicely.dto.AuthDtos.RegisterStart;
 import com.fieldservicely.dto.AuthDtos.TokenResponse;
+import com.fieldservicely.dto.AuthDtos.ChangePasswordRequest;
+import com.fieldservicely.dto.AuthDtos.ResetPasswordRequest;
+import com.fieldservicely.dto.AuthDtos.UpdateProfileRequest;
 import com.fieldservicely.dto.AuthDtos.UserView;
 import com.fieldservicely.entity.Customer;
 import com.fieldservicely.entity.RefreshToken;
@@ -147,7 +150,7 @@ public class AuthService {
         return customer
                 ? new RegisterResponse("ACTIVE", "Your account is ready. Sign in with your email and password.")
                 : new RegisterResponse("PENDING_APPROVAL",
-                        "Your mobile and email are verified. An administrator must approve your account before you can sign in.");
+                        "Your email is verified. An administrator must approve your account before you can sign in.");
     }
 
     private void checkRegistration(Role role, String email, String phone, String address) {
@@ -161,6 +164,52 @@ public class AuthService {
         String p = PhoneNumbers.normalize(phone);
         if (users.existsByEmailIgnoreCase(e)) throw new ApiException.Conflict("An account with this email already exists. Sign in instead.");
         if (users.existsByPhone(p)) throw new ApiException.Conflict("An account with this mobile number already exists. Sign in instead.");
+    }
+
+    /** Forgot password: the emailed Firebase link proves mailbox ownership, then the password is replaced and all sessions end. */
+    @Transactional(noRollbackFor = ApiException.class)
+    public void resetPassword(ResetPasswordRequest in, String clientIp) {
+        String email = in.email().trim().toLowerCase();
+        String key = "reset|" + clientIp + "|" + email;
+        if (limiter.isBlocked(key)) throw new ApiException.TooManyRequests("Too many failed attempts. Try again later.");
+        try {
+            String proven = firebase.verifyEmail(in.emailIdToken());
+            if (!proven.equals(email)) throw new ApiException.Unauthorized("The verified email address does not match the one entered.");
+        } catch (ApiException.Unauthorized ex) {
+            limiter.recordFailure(key);
+            throw ex;
+        }
+        limiter.reset(key);
+        User u = users.findByEmailIgnoreCase(email)
+                .orElseThrow(() -> new ApiException.BadRequest("No account exists for this email. Register instead."));
+        u.setPasswordHash(encoder.encode(in.password()));
+        users.save(u);
+        refreshTokens.revokeAllForUser(u.getId());
+        log.info("Password reset for user {}", u.getId());
+    }
+
+    @Transactional
+    public void changePassword(com.fieldservicely.security.AuthUser me, ChangePasswordRequest in) {
+        User u = users.findById(me.id()).orElseThrow(() -> new ApiException.Unauthorized("Authentication required"));
+        if (!encoder.matches(in.currentPassword(), u.getPasswordHash())) throw new ApiException.BadRequest("Current password is incorrect");
+        u.setPasswordHash(encoder.encode(in.newPassword()));
+        users.save(u);
+        refreshTokens.revokeAllForUser(u.getId());
+    }
+
+    @Transactional
+    public UserView updateProfile(com.fieldservicely.security.AuthUser me, UpdateProfileRequest in) {
+        User u = users.findById(me.id()).orElseThrow(() -> new ApiException.Unauthorized("Authentication required"));
+        u.setName(in.name().trim());
+        users.save(u);
+        if (u.getCustomerId() != null) {
+            customers.findById(u.getCustomerId()).ifPresent(c -> {
+                c.setName(u.getName());
+                if (in.address() != null && !in.address().isBlank()) c.setAddress(in.address().trim());
+                customers.save(c);
+            });
+        }
+        return UserView.of(u);
     }
 
     /** Counts a request against the client address; used by the unauthenticated pre-check. */

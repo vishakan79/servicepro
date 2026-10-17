@@ -112,3 +112,5 @@ export async function fetchAll<T>(path: string, query: Record<string, string | n
     if (page + 1 >= p.totalPages) return out
   }
 }
+
+export const resetPassword = (d: { email: string; password: string; emailIdToken: string }) => authPost<void>('/password/reset', d)

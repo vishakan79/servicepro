@@ -3,6 +3,8 @@ import { Navigate, Route, Routes } from 'react-router-dom'
 import Layout from './components/Layout'
 import { RequireRole, useAuth } from './auth/AuthContext'
 import Login from './pages/Login'
+import MyJobs from './pages/MyJobs'
+import ForgotPassword from './pages/ForgotPassword'
 const Dashboard = lazy(() => import('./pages/Dashboard'))
 const Requests = lazy(() => import('./pages/Requests'))
 const NewRequest = lazy(() => import('./pages/NewRequest'))
@@ -33,11 +35,13 @@ export default function App() {
       <Route path="/" element={<Home />} />
       <Route path="/login" element={user ? <Navigate to="/dashboard" replace /> : <Login />} />
       <Route path="/register" element={user ? <Navigate to="/dashboard" replace /> : <Login initial="register" />} />
+      <Route path="/forgot-password" element={<ForgotPassword />} />
       <Route path="/forbidden" element={<div style={{ padding: 40 }}><h1>403 - You don't have access to this page</h1></div>} />
       <Route element={<RequireRole><Layout /></RequireRole>}>
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/requests" element={<RequireRole roles={['ADMIN', 'MANAGER', 'CUSTOMER']}><Requests /></RequireRole>} />
         <Route path="/requests/new" element={<RequireRole roles={['ADMIN', 'MANAGER', 'CUSTOMER']}><NewRequest /></RequireRole>} />
+        <Route path="/my-jobs" element={<RequireRole roles={['TECHNICIAN']}><MyJobs /></RequireRole>} />
         <Route path="/work-orders" element={<WorkOrders />} />
         <Route path="/work-orders/:id" element={<WorkOrderDetail />} />
         <Route path="/work-orders/:id/assign" element={<RequireRole roles={[...STAFF]}><AssignTechnician /></RequireRole>} />

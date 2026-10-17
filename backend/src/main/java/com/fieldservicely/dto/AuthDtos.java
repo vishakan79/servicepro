@@ -27,6 +27,15 @@ public final class AuthDtos {
                                   @NotBlank @Pattern(regexp = PASSWORD_RULE, message = PASSWORD_MSG) String password,
                                   @NotBlank @Size(max = 4096) String emailIdToken) {}
 
+    public record ResetPasswordRequest(@NotBlank @Email @Size(max = 160) String email,
+                                       @NotBlank @Pattern(regexp = PASSWORD_RULE, message = PASSWORD_MSG) String password,
+                                       @NotBlank @Size(max = 4096) String emailIdToken) {}
+
+    public record ChangePasswordRequest(@NotBlank @Size(max = 72) String currentPassword,
+                                        @NotBlank @Pattern(regexp = PASSWORD_RULE, message = PASSWORD_MSG) String newPassword) {}
+
+    public record UpdateProfileRequest(@NotBlank @Size(max = 120) String name, @Size(max = 300) String address) {}
+
     public record UserView(Long id, String name, String email, String phone, Role role, Long customerId, Long technicianId,
                            boolean enabled, boolean approvalPending) {
         public static UserView of(User u) {

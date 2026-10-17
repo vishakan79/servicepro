@@ -11,6 +11,7 @@ import com.fieldservicely.dto.WorkOrderDtos.LogRequest;
 import com.fieldservicely.dto.WorkOrderDtos.LogView;
 import com.fieldservicely.dto.WorkOrderDtos.PartLine;
 import com.fieldservicely.dto.WorkOrderDtos.PartRequest;
+import com.fieldservicely.dto.WorkOrderDtos.PunchRequest;
 import com.fieldservicely.dto.WorkOrderDtos.RequestView;
 import com.fieldservicely.dto.WorkOrderDtos.StatusRequest;
 import com.fieldservicely.dto.WorkOrderDtos.WorkOrderDetail;
@@ -95,6 +96,18 @@ public class WorkOrderController {
     @PreAuthorize("hasAnyRole('ADMIN','MANAGER','TECHNICIAN')")
     public WorkOrderDetail status(@PathVariable Long id, @Valid @RequestBody StatusRequest body) {
         return service.changeStatus(id, body.status(), CurrentUser.require());
+    }
+
+    @PostMapping("/work-orders/{id}/check-in")
+    @PreAuthorize("hasAnyRole('ADMIN','MANAGER','TECHNICIAN')")
+    public WorkOrderDetail checkIn(@PathVariable Long id, @Valid @RequestBody PunchRequest body) {
+        return service.checkIn(id, body, CurrentUser.require());
+    }
+
+    @PostMapping("/work-orders/{id}/check-out")
+    @PreAuthorize("hasAnyRole('ADMIN','MANAGER','TECHNICIAN')")
+    public WorkOrderDetail checkOut(@PathVariable Long id, @Valid @RequestBody PunchRequest body) {
+        return service.checkOut(id, body, CurrentUser.require());
     }
 
     @PutMapping("/work-orders/{id}/checklist/{itemId}")

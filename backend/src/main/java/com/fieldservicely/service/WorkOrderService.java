@@ -11,6 +11,7 @@ import com.fieldservicely.dto.WorkOrderDtos.FeedbackView;
 import com.fieldservicely.dto.WorkOrderDtos.LogView;
 import com.fieldservicely.dto.WorkOrderDtos.PartLine;
 import com.fieldservicely.dto.WorkOrderDtos.PartRequest;
+import com.fieldservicely.dto.WorkOrderDtos.PunchRequest;
 import com.fieldservicely.dto.WorkOrderDtos.RequestView;
 import com.fieldservicely.dto.WorkOrderDtos.TimelineEntry;
 import com.fieldservicely.dto.WorkOrderDtos.WorkOrderDetail;
@@ -331,6 +332,36 @@ public class WorkOrderService {
         }
         notifications.workOrderChanged(w, Codes.workOrder(w.getId(), w.getCreatedAt()) + " is now " + target.label());
         return detail(id, u);
+    }
+
+    /** Arrive on site: moves ASSIGNED/EN_ROUTE jobs to IN_PROGRESS and records the (optional) location in the timeline. */
+    @Transactional
+    public WorkOrderDetail checkIn(Long id, PunchRequest in, AuthUser u) {
+        WorkOrder w = loadScoped(id, u);
+        requireWorker(u);
+        if (w.getStatus() == WorkOrderStatus.ASSIGNED) changeStatus(id, WorkOrderStatus.EN_ROUTE, u);
+        if (w.getStatus() == WorkOrderStatus.EN_ROUTE) changeStatus(id, WorkOrderStatus.IN_PROGRESS, u);
+        else if (w.getStatus() != WorkOrderStatus.IN_PROGRESS) throw new ApiException.Conflict("Cannot check in to a " + w.getStatus() + " job");
+        event(id, "Technician checked in" + place(in), u.name());
+        audit.record(u, "CHECK_IN", "WorkOrder", id, place(in));
+        return detail(id, u);
+    }
+
+    /** Leave the site; the job itself is closed separately once the checklist is done. */
+    @Transactional
+    public WorkOrderDetail checkOut(Long id, PunchRequest in, AuthUser u) {
+        WorkOrder w = loadScoped(id, u);
+        requireWorker(u);
+        if (w.getStatus() != WorkOrderStatus.IN_PROGRESS) throw new ApiException.Conflict("Check in before checking out");
+        event(id, "Technician checked out" + place(in), u.name());
+        audit.record(u, "CHECK_OUT", "WorkOrder", id, place(in));
+        return detail(id, u);
+    }
+
+    private static String place(PunchRequest in) {
+        if (in.lat() == null || in.lng() == null) return "";
+        if (Math.abs(in.lat()) > 90 || Math.abs(in.lng()) > 180) throw new ApiException.BadRequest("Invalid location");
+        return String.format(java.util.Locale.ROOT, " at %.5f, %.5f", in.lat(), in.lng());
     }
 
     @Transactional

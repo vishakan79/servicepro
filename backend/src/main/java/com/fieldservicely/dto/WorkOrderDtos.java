@@ -38,6 +38,9 @@ public final class WorkOrderDtos {
 
     public record ChecklistRequest(boolean done) {}
 
+    /** Optional job-site coordinates, sent only when the technician consents in the browser. */
+    public record PunchRequest(Double lat, Double lng) {}
+
     public record LogRequest(@NotBlank @Size(max = 1000) String text) {}
 
     public record PartRequest(@NotNull Long partId, @Min(1) @Max(1000) int quantity) {}

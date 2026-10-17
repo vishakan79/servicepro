@@ -31,6 +31,7 @@ export interface Store {
   assign: (woId: number, techId: number, date: string, hour: number, duration: number, notes: string, by: string) => Promise<string | null>
   autoPick: (woId: number) => number | null
   setStatus: (woId: number, s: WOStatus, by: string) => Promise<void>
+  punch: (woId: number, kind: 'check-in' | 'check-out', loc: { lat: number; lng: number } | null) => Promise<void>
   toggleCheck: (woId: number, idx: number) => Promise<void>
   addLog: (woId: number, text: string, by: string) => Promise<void>
   addPart: (woId: number, partId: number, qty: number) => Promise<string | null>

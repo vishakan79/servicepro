@@ -168,6 +168,14 @@ export function ApiStoreProvider({ children }: { children: ReactNode }) {
     }, undefined)
   }
 
+  const punch: Store['punch'] = async (woId, kind, loc) => {
+    await run(async () => {
+      await api(`/work-orders/${woId}/${kind}`, { method: 'POST', body: { lat: loc?.lat ?? null, lng: loc?.lng ?? null } })
+      await reload()
+      toast(kind === 'check-in' ? 'Checked in - job started' : 'Checked out', 'ok')
+    }, undefined)
+  }
+
   const toggleCheck: Store['toggleCheck'] = async (woId, idx) => {
     const item = workOrders.find((w) => w.id === woId)?.checklist[idx]
     if (!item?.id) return
@@ -220,7 +228,7 @@ export function ApiStoreProvider({ children }: { children: ReactNode }) {
   const value = useMemo<Store>(
     () => ({
       customers, technicians, requests, workOrders, parts, invoices, toasts, activity, unread,
-      markRead: () => setUnread(0), toast, dismiss, addCustomer, createRequest, assign, autoPick, setStatus, toggleCheck, addLog,
+      markRead: () => setUnread(0), toast, dismiss, addCustomer, createRequest, assign, autoPick, setStatus, punch, toggleCheck, addLog,
       addPart, restock, markPaid, rate, techStatusOf,
     }),
     // eslint-disable-next-line react-hooks/exhaustive-deps

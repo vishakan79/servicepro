@@ -6,6 +6,7 @@ import { useStore } from '../api/store'
 import { fmtDate, inr } from '../api/format'
 import { Avatar, Badge, Card, Empty, PageHeader } from '../components/ui'
 import { Invoice } from '../types'
+import { downloadInvoicePdf } from '../api/invoicePdf'
 import { useScoped } from './scope'
 
 export const totalOf = (i: Invoice) => {
@@ -61,7 +62,7 @@ export function InvoiceDetail() {
     <>
       <PageHeader title={<>Invoice #{inv.number} <Badge>{inv.status}</Badge></>}>
         <button className="btn" onClick={() => window.print()}><Printer size={16} /> Print</button>
-        <button className="btn" onClick={() => toast('Invoice PDF would download here (S3 pre-signed URL in production)', 'info')}><Download size={16} /> Download</button>
+        <button className="btn" onClick={() => downloadInvoicePdf(inv, c, t).catch(() => toast('Could not create the PDF', 'warn'))}><Download size={16} /> Download</button>
       </PageHeader>
       <div className="g-ms">
         <Card>

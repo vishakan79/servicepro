@@ -127,12 +127,51 @@ export function Users() {
 
 export function Settings() {
   const { user } = useAuth()
+  const { toast } = useStore()
+  const [name, setName] = useState(user!.name)
+  const [address, setAddress] = useState('')
+  const [cur, setCur] = useState('')
+  const [nw, setNw] = useState('')
+  const [busy, setBusy] = useState(false)
+  const failed = (e: unknown) => toast(e instanceof Error ? e.message : 'Something went wrong', 'warn')
+
+  const saveProfile = async () => {
+    if (!name.trim()) return toast('Name is required', 'warn')
+    setBusy(true)
+    try {
+      await api('/auth/profile', { method: 'PUT', body: { name: name.trim(), address: address.trim() || null } })
+      toast('Profile saved', 'ok')
+      setTimeout(() => window.location.reload(), 600)
+    } catch (e) { failed(e) } finally { setBusy(false) }
+  }
+  const changePassword = async () => {
+    if (!/^(?=.*[A-Za-z])(?=.*[0-9]).{8,72}$/.test(nw)) return toast('New password needs 8+ characters with a letter and a number', 'warn')
+    setBusy(true)
+    try {
+      await api('/auth/password/change', { method: 'POST', body: { currentPassword: cur, newPassword: nw } })
+      setCur(''); setNw('')
+      toast('Password changed. Other devices will need to sign in again.', 'ok')
+    } catch (e) { failed(e) } finally { setBusy(false) }
+  }
+
   return (
     <>
       <PageHeader title="Settings" sub="Your account." />
-      <Card title="Profile">
-        <dl className="kv"><dt>Name</dt><dd>{user!.name}</dd><dt>Email</dt><dd>{user!.email}</dd><dt>Role</dt><dd><Badge tone="purple">{user!.role}</Badge></dd></dl>
-      </Card>
+      <div className="g-2-1">
+        <Card title="Profile">
+          <dl className="kv"><dt>Email</dt><dd>{user!.email}</dd><dt>Role</dt><dd><Badge tone="purple">{user!.role}</Badge></dd></dl>
+          <label className="field"><span className="field-l">Name</span><span className="inp"><input value={name} maxLength={120} onChange={(e) => setName(e.target.value)} /></span></label>
+          {user!.role === 'CUSTOMER' && (
+            <label className="field"><span className="field-l">Service address (leave blank to keep)</span><span className="inp"><input value={address} maxLength={300} onChange={(e) => setAddress(e.target.value)} /></span></label>
+          )}
+          <button className="btn p" disabled={busy} onClick={saveProfile}>Save profile</button>
+        </Card>
+        <Card title="Change password">
+          <label className="field"><span className="field-l">Current password</span><span className="inp"><input type="password" autoComplete="current-password" value={cur} maxLength={72} onChange={(e) => setCur(e.target.value)} /></span></label>
+          <label className="field"><span className="field-l">New password</span><span className="inp"><input type="password" autoComplete="new-password" value={nw} maxLength={72} placeholder="8+ characters, letter and number" onChange={(e) => setNw(e.target.value)} /></span></label>
+          <button className="btn p" disabled={busy || !cur || !nw} onClick={changePassword}>Update password</button>
+        </Card>
+      </div>
     </>
   )
 }

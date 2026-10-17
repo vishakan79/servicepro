@@ -43,11 +43,12 @@ export default function Appointments() {
   const { workOrders } = useScoped()
   const nav = useNavigate()
   const [mode, setMode] = useState<'Day' | 'Week'>('Week')
+  const [techId, setTechId] = useState(0)
   const [anchor, setAnchor] = useState(isoDate(0))
   const days = useMemo(() => (mode === 'Week' ? Array.from({ length: 7 }, (_, i) => addDays(monday(anchor), i)) : [anchor]), [mode, anchor])
   const step = mode === 'Week' ? 7 : 1
   const label = (iso: string, o: Intl.DateTimeFormatOptions) => new Date(iso + 'T00:00:00').toLocaleDateString('en-US', o)
-  const rows = workOrders.filter((w) => w.technicianId && days.includes(w.date))
+  const rows = workOrders.filter((w) => w.technicianId && (!techId || w.technicianId === techId) && days.includes(w.date))
 
   return (
     <>
@@ -60,6 +61,12 @@ export default function Appointments() {
         <b>{mode === 'Week' ? `${label(days[0], { month: 'short', day: 'numeric' })} - ${label(days[6], { month: 'short', day: 'numeric', year: 'numeric' })}` : label(anchor, { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}</b>
         <button className="icon-btn" aria-label="Next" onClick={() => setAnchor(addDays(anchor, step))}><ChevronRight size={18} /></button>
         <button className="btn sm" onClick={() => setAnchor(isoDate(0))}>Today</button>
+        {technicians.length > 1 && (
+          <select value={techId} onChange={(e) => setTechId(Number(e.target.value))} aria-label="Technician">
+            <option value={0}>All technicians</option>
+            {technicians.map((t) => <option key={t.id} value={t.id}>{t.name}</option>)}
+          </select>
+        )}
       </div>
       <Card className="p0">
         <div className="cal" style={{ gridTemplateColumns: `56px repeat(${days.length}, minmax(${mode === 'Week' ? 110 : 300}px, 1fr))` }}>

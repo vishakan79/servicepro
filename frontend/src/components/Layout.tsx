@@ -29,6 +29,7 @@ const STAFF: Role[] = ['ADMIN', 'MANAGER']
 export const NAV: { to: string; label: string; icon: typeof Bell; roles: Role[] }[] = [
   { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard, roles: ALL },
   { to: '/requests', label: 'Service Requests', icon: Inbox, roles: ['ADMIN', 'MANAGER', 'CUSTOMER'] },
+  { to: '/my-jobs', label: 'My Jobs', icon: ClipboardList, roles: ['TECHNICIAN'] },
   { to: '/work-orders', label: 'Work Orders', icon: ClipboardList, roles: ALL },
   { to: '/appointments', label: 'Appointments', icon: CalendarDays, roles: ALL },
   { to: '/tracking', label: 'Live Tracking', icon: MapPin, roles: STAFF },

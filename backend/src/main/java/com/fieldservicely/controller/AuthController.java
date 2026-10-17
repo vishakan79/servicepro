@@ -1,12 +1,15 @@
 package com.fieldservicely.controller;
 
 import com.fieldservicely.config.AppProperties;
+import com.fieldservicely.dto.AuthDtos.ChangePasswordRequest;
 import com.fieldservicely.dto.AuthDtos.LoginRequest;
 import com.fieldservicely.dto.AuthDtos.LoginResult;
 import com.fieldservicely.dto.AuthDtos.RegisterRequest;
 import com.fieldservicely.dto.AuthDtos.RegisterResponse;
 import com.fieldservicely.dto.AuthDtos.RegisterStart;
+import com.fieldservicely.dto.AuthDtos.ResetPasswordRequest;
 import com.fieldservicely.dto.AuthDtos.TokenResponse;
+import com.fieldservicely.dto.AuthDtos.UpdateProfileRequest;
 import com.fieldservicely.dto.AuthDtos.UserView;
 import com.fieldservicely.security.CurrentUser;
 import com.fieldservicely.util.ClientIp;
@@ -20,6 +23,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -54,6 +58,23 @@ public class AuthController {
     @PostMapping("/register")
     public RegisterResponse register(@Valid @RequestBody RegisterRequest req, HttpServletRequest http) {
         return auth.register(req, ClientIp.of(http));
+    }
+
+    @PostMapping("/password/reset")
+    public ResponseEntity<Void> resetPassword(@Valid @RequestBody ResetPasswordRequest req, HttpServletRequest http) {
+        auth.resetPassword(req, ClientIp.of(http));
+        return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/password/change")
+    public ResponseEntity<Void> changePassword(@Valid @RequestBody ChangePasswordRequest req) {
+        auth.changePassword(CurrentUser.require(), req);
+        return ResponseEntity.noContent().build();
+    }
+
+    @PutMapping("/profile")
+    public UserView updateProfile(@Valid @RequestBody UpdateProfileRequest req) {
+        return auth.updateProfile(CurrentUser.require(), req);
     }
 
     @PostMapping("/refresh")

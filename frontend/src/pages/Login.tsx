@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { useLocation, useNavigate } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { Bell, BarChart3, CalendarDays, CheckCircle2, ClipboardList, Eye, EyeOff, FileText, Globe, KeyRound, Lock, Mail, MapPin, Package, Phone, Settings, ShieldCheck, Users, UserPlus, LogIn } from 'lucide-react'
 import { useAuth } from '../auth/AuthContext'
 import { Logo } from '../components/Layout'
@@ -47,7 +47,7 @@ function CodeInput({ value, onChange, label }: { value: string; onChange: (v: st
   )
 }
 
-function PasswordInput({ label, value, onChange, auto, hint }: { label: string; value: string; onChange: (v: string) => void; auto: string; hint?: string }) {
+export function PasswordInput({ label, value, onChange, auto, hint }: { label: string; value: string; onChange: (v: string) => void; auto: string; hint?: string }) {
   const [show, setShow] = useState(false)
   return (
     <label className="field">
@@ -224,7 +224,7 @@ export default function Login({ initial = 'login' }: { initial?: 'login' | 'regi
           ) : (
             <>
               <h2>{mode === 'login' ? 'Welcome Back' : 'Create your account'}</h2>
-              <p className="muted">{mode === 'login' ? 'Sign in with your email and password.' : 'We verify your email address and mobile number before the account is created.'}</p>
+              <p className="muted">{mode === 'login' ? 'Sign in with your email and password.' : 'We verify your email address before the account is created.'}</p>
 
               {mode === 'register' && (
                 <ol className="vsteps" aria-label="Registration steps">
@@ -303,7 +303,7 @@ export default function Login({ initial = 'login' }: { initial?: 'login' | 'regi
                   ? <>New here? <button type="button" className="link" onClick={() => reset('register')}>Create an account</button></>
                   : <>Already registered? <button type="button" className="link" onClick={() => reset('login')}>Sign in</button></>}
               </p>
-              <p className="muted center small">{mode === 'login' ? 'Forgot your password? Ask your administrator to reset it.' : 'Administrator accounts are created by an existing administrator.'}</p>
+              <p className="muted center small">{mode === 'login' ? <>Forgot your password? <Link to="/forgot-password">Reset it by email</Link></> : 'Administrator accounts are created by an existing administrator.'}</p>
             </>
           )}
         </form>
