@@ -45,7 +45,7 @@ export const NAV: { to: string; label: string; icon: typeof Bell; roles: Role[] 
   { to: '/settings', label: 'Settings', icon: Cog, roles: [...ALL, 'INVENTORY_MANAGER'] },
 ]
 
-const PRIMARY = 5 // items shown in the header bar; the rest sit under "More"
+const PRIMARY = 4 // items shown in the header bar; the rest sit under "More"
 
 export default function Layout() {
   const { user, logout } = useAuth()

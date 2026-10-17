@@ -267,3 +267,6 @@ input:focus, select:focus, textarea:focus { border-color: var(--primary); box-sh
 /* grid children may shrink below their content width (long addresses, wide tables) instead of stretching the page */
 .g-ms > *, .g-2-1 > *, .grid-2 > *, .grid-3 > *, .trk > *, .stats > *, .card { min-width: 0; }
 .info-l span, .kv dd { overflow-wrap: anywhere; }
+
+/* Keep the nav from running into the bell / account area on mid-size screens. */
+@media (max-width: 1560px) { .hdr-in { gap: 18px; } .m-link { padding: 0 9px; font-size: 13.5px; } }
