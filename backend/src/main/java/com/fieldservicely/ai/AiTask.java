@@ -7,7 +7,8 @@ public enum AiTask {
     NOTE_SUMMARY(false),
     ASSIGN(true),
     REPORT_SUMMARY(false),
-    CHAT(false);
+    CHAT(false),
+    ROLE_ASSIST(false);
 
     private final boolean json;
 

@@ -1,20 +1,20 @@
 import { FormEvent, useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { ArrowRight, Check, ChevronDown, LogIn, Menu, Play, Plus, X } from 'lucide-react'
-import { Count, Rv, ScrollProgress, Tilt, TourVideo, Words, useReveal } from './motion'
-import Explainer from './Explainer'
+import { ArrowRight, Check, ChevronDown, LogIn, Menu, Plus, Sparkles, X } from 'lucide-react'
+import { Count, Rv, ScrollProgress, Tilt, Words, useReveal } from './motion'
 import { Logo } from '../components/Layout'
 import { useAuth } from '../auth/AuthContext'
 import { ApiError, submitInquiry } from '../api/inquiry'
-import { FAQ, INTERESTS, PLATFORM, ROLES, SOLUTIONS, STEPS, TOUR, TRUST } from './content'
+import { AI_FEATURES, AI_ROLE_NOTE, FAQ, INTERESTS, PLATFORM, ROLES, SOLUTIONS, STEPS, TOUR, TRUST, USE_CASES } from './content'
 import './site.css'
 
 const go = (id: string) => document.getElementById(id)?.scrollIntoView({ behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'start' })
 
 const NAV = [
-  { id: 'explainer', label: 'Walkthrough' },
+  { id: 'usecases', label: 'Use cases' },
+  { id: 'ai', label: 'AI assistant' },
   { id: 'how', label: 'How it works' },
-  { id: 'roles', label: 'Who uses it' },
+  { id: 'roles', label: 'Roles' },
   { id: 'platform', label: 'Platform' },
   { id: 'faq', label: 'FAQ' },
 ]
@@ -97,7 +97,7 @@ function NetArt() {
   )
 }
 
-function Hero({ onWatch }: { onWatch: () => void }) {
+function Hero() {
   return (
     <section className="hero-s">
       <div className="gl-mesh" aria-hidden="true" />
@@ -111,13 +111,12 @@ function Hero({ onWatch }: { onWatch: () => void }) {
           <p className="lead pop" style={{ ['--d' as string]: '260ms' }}>ServicePro gives your control desk, technicians and customers one shared view of each job: who is going, what is done, which parts were used and what is owed.</p>
           <div className="hero-cta pop" style={{ ['--d' as string]: '400ms' }}>
             <button className="btn p big cta-pulse gl-shine" onClick={() => go('demo')}>Request a demo <ArrowRight size={18} /></button>
-            <button className="btn big ghost" onClick={onWatch}><Play size={16} fill="currentColor" /> Watch the tour</button>
+            <button className="btn big ghost" onClick={() => go('usecases')}>See use cases</button>
           </div>
         </div>
         <div className="hero-art pop" style={{ ['--d' as string]: '300ms' }}>
           <Tilt>
-          <div className="frame float"><i /><i /><i /><TourVideo className="vid" /></div>
-          <button className="play-hint" onClick={onWatch} aria-label="Play the full product tour with sound controls"><Play size={14} fill="currentColor" /> 39 s product tour</button>
+          <div className="frame float"><i /><i /><i /><img className="vid" src="/shots/dashboard.jpg" alt="ServicePro dashboard" width="1360" height="850" /></div>
           <div className="phone float2" aria-hidden="true"><img src="/shots/mobile.jpg" alt="" width="780" height="1560" /></div>
           <div className="chip-f c1" aria-hidden="true"><Check size={14} /> Technician assigned</div>
           <div className="chip-f c2" aria-hidden="true"><i /> Live: on the way</div>
@@ -125,7 +124,7 @@ function Hero({ onWatch }: { onWatch: () => void }) {
         </div>
       </div>
       <div className="wrap facts">
-        {([[4, '', 'roles, each with its own view'], [6, '', 'stages from request to payment'], [9, '', 'modules on one shared record'], [360, ' px', 'up to wide desks, one layout']] as [number, string, string][]).map(([v, u, l]) => (
+        {([[5, '', 'roles, each with its own view'], [6, '', 'AI helpers built in'], [14, '', 'languages, incl. Hindi and Tamil'], [6, '', 'stages from request to payment']] as [number, string, string][]).map(([v, u, l]) => (
           <div key={l}><b><Count to={v} suffix={u} /></b><span>{l}</span></div>
         ))}
       </div>
@@ -133,20 +132,6 @@ function Hero({ onWatch }: { onWatch: () => void }) {
         <div>{[...SOLUTIONS, ...SOLUTIONS, ...SOLUTIONS].map((x, k) => <span key={k}><x.icon size={16} /> {x.title}</span>)}</div>
       </div>
     </section>
-  )
-}
-
-function VideoModal({ onClose }: { onClose: () => void }) {
-  useEffect(() => { const k = (e: KeyboardEvent) => e.key === 'Escape' && onClose(); addEventListener('keydown', k); document.body.style.overflow = 'hidden'; return () => { removeEventListener('keydown', k); document.body.style.overflow = '' } }, [onClose])
-  const ref = useRef<HTMLVideoElement>(null)
-  useEffect(() => { ref.current?.play().catch(() => {}) }, [])
-  return (
-    <div className="modal" role="dialog" aria-modal="true" aria-label="Product tour video" onClick={onClose}>
-      <div className="modal-in" onClick={(e) => e.stopPropagation()}>
-        <button className="icon-btn modal-x" onClick={onClose} aria-label="Close video"><X size={20} /></button>
-        <video ref={ref} poster="/video/tour-poster.jpg" controls playsInline loop><source src="/video/tour.webm" type="video/webm" /><source src="/video/tour.mp4" type="video/mp4" /></video>
-      </div>
-    </div>
   )
 }
 
@@ -172,6 +157,46 @@ function Solutions() {
             </article>
           ))}
         </div>
+      </div>
+    </section>
+  )
+}
+
+function UseCases() {
+  return (
+    <section id="usecases" className="sec alt">
+      <div className="wrap">
+        <Head kicker="Real-world use cases" title="Built for the businesses that send technicians to the customer" text="Whatever you repair, the day looks the same: a call, a visit, parts, a bill. ServicePro keeps that chain in one place." />
+        <div className="grid3">
+          {USE_CASES.map((u, k) => (
+            <article key={u.title} className="svc rv" style={{ ['--d' as string]: `${(k % 3) * 90}ms` }}>
+              <span className="svc-ic"><u.icon size={22} /></span>
+              <h3>{u.title}</h3>
+              <p>{u.flow}</p>
+              <p className="uc-who"><b>Good fit:</b> {u.who}</p>
+            </article>
+          ))}
+        </div>
+      </div>
+    </section>
+  )
+}
+
+function AiSection() {
+  return (
+    <section id="ai" className="sec">
+      <div className="wrap">
+        <Head kicker="AI built in" title="An assistant for every role, not a gimmick" text="Each person gets the AI that fits their work, from the top bar. It suggests; your people decide." />
+        <div className="grid3">
+          {AI_FEATURES.map((f, k) => (
+            <article key={f.title} className="svc rv" style={{ ['--d' as string]: `${(k % 3) * 90}ms` }}>
+              <span className="svc-ic ai"><f.icon size={22} /></span>
+              <h3>{f.title}</h3>
+              <p>{f.text}</p>
+            </article>
+          ))}
+        </div>
+        <p className="ai-foot rv"><Sparkles size={16} /> {AI_ROLE_NOTE}</p>
       </div>
     </section>
   )
@@ -228,8 +253,8 @@ function Roles() {
   return (
     <section id="roles" className="sec dark">
       <div className="wrap">
-        <Head title="One system, four different views" text="People see what their role needs, enforced by the server rather than hidden by the screen." />
-        <div className="grid4">
+        <Head title="One system, five different views" text="People see what their role needs, enforced by the server rather than hidden by the screen." />
+        <div className="grid4" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(210px, 1fr))' }}>
           {ROLES.map((r) => (
             <article key={r.name} className="role rv" style={{ ['--d' as string]: `${ROLES.indexOf(r) * 90}ms` }}>
               <r.icon size={26} />
@@ -391,7 +416,6 @@ function SiteFooter() {
 }
 
 export default function Home() {
-  const [video, setVideo] = useState(false)
   useReveal()
   useEffect(() => { document.title = 'ServicePro: field service management for service teams' }, [])
   return (
@@ -399,9 +423,10 @@ export default function Home() {
       <ScrollProgress />
       <SiteHeader />
       <main>
-        <Hero onWatch={() => setVideo(true)} />
+        <Hero />
         <Solutions />
-        <Explainer />
+        <UseCases />
+        <AiSection />
         <Tour />
         <How />
         <Roles />
@@ -410,7 +435,6 @@ export default function Home() {
         <Demo />
       </main>
       <SiteFooter />
-      {video && <VideoModal onClose={() => setVideo(false)} />}
     </div>
   )
 }

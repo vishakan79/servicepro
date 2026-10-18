@@ -21,6 +21,7 @@ const Feedback = lazy(() => import('./pages/Feedback'))
 const Customers = lazy(() => import('./pages/Directory').then((m) => ({ default: m.Customers })))
 const Settings = lazy(() => import('./pages/Directory').then((m) => ({ default: m.Settings })))
 const Technicians = lazy(() => import('./pages/Directory').then((m) => ({ default: m.Technicians })))
+const AiHub = lazy(() => import('./pages/AiHub'))
 const Equipment = lazy(() => import('./pages/Equipment'))
 const Inquiries = lazy(() => import('./pages/Inquiries'))
 const Home = lazy(() => import('./site/Home'))
@@ -56,6 +57,7 @@ export default function App() {
         <Route path="/reports" element={<RequireRole roles={[...STAFF]}><Reports /></RequireRole>} />
         <Route path="/feedback" element={<Feedback />} />
         <Route path="/users" element={<RequireRole roles={['ADMIN']}><Users /></RequireRole>} />
+        <Route path="/ai" element={<AiHub />} />
         <Route path="/equipment" element={<RequireRole roles={['ADMIN', 'MANAGER', 'CUSTOMER']}><Equipment /></RequireRole>} />
         <Route path="/inquiries" element={<RequireRole roles={['ADMIN']}><Inquiries /></RequireRole>} />
         <Route path="/settings" element={<Settings />} />

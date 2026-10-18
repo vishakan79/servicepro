@@ -19,6 +19,8 @@ const features = [
   { icon: Settings, label: 'SLA Tracking & Compliance' },
 ]
 
+const FLOW = ['Customer reports "AC not cooling"', 'AI suggests type and priority', 'Best technician assigned', 'Checks in on phone, parts deducted', 'GST invoice paid']
+
 const INDUSTRIES = ['AC & Refrigeration', 'Electrical', 'Plumbing', 'Appliance Repair', 'Facility Maintenance']
 
 const COUNTRIES = [['+91', 'India +91'], ['+1', 'US/Canada +1'], ['+44', 'UK +44'], ['+971', 'UAE +971'], ['+65', 'Singapore +65'], ['+61', 'Australia +61']]
@@ -209,14 +211,14 @@ export default function Login({ initial = 'login' }: { initial?: 'login' | 'regi
           ))}
         </ul>
         <div className="hero-foot">
+          <div className="hero-flow">
+            <p>{t('A real job, start to finish')}</p>
+            <ol>{FLOW.map((x, i) => <li key={x}><b>{i + 1}</b>{t(x)}</li>)}</ol>
+          </div>
           <div className="hero-stats">
             <div><b>{LANGUAGES.length}</b><small>{t('Languages')}</small></div>
-            <div><b>{t('Pan-India')}</b><small>{t('Any city, any team')}</small></div>
-            <div><b>5</b><small>{t('Role-based access levels')}</small></div>
-          </div>
-          <div className="hero-chips">
-            <span>{t('₹ INR billing')}</span>
-            <span>{t('GST-ready invoices')}</span>
+            <div><b>AI</b><small>{t('Assistant for every role')}</small></div>
+            <div><b>GST</b><small>{t('Ready invoices')}</small></div>
           </div>
           <div className="hero-ind">
             {INDUSTRIES.map((x) => <span key={x}>{t(x)}</span>)}

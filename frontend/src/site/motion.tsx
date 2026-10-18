@@ -37,23 +37,6 @@ export function Count({ to, suffix = '' }: { to: number; suffix?: string }) {
   return <span ref={ref}>{v}{suffix}</span>
 }
 
-/** Muted looping product video; falls back to the poster image if autoplay is blocked or motion is reduced. */
-export function TourVideo({ className = '', controls = false, autoPlay = true }: { className?: string; controls?: boolean; autoPlay?: boolean }) {
-  const ref = useRef<HTMLVideoElement>(null)
-  useEffect(() => {
-    const v = ref.current
-    if (!v || !autoPlay || reduced()) return
-    const io = new IntersectionObserver(([e]) => { if (e.isIntersecting) v.play().catch(() => {}); else v.pause() }, { threshold: 0.25 })
-    io.observe(v)
-    return () => io.disconnect()
-  }, [autoPlay])
-  return (
-    <video ref={ref} className={className} poster="/video/tour-poster.jpg" muted loop playsInline preload="metadata" controls={controls} aria-label="Product walkthrough video">
-      <source src="/video/tour.webm" type="video/webm" /><source src="/video/tour.mp4" type="video/mp4" />
-    </video>
-  )
-}
-
 /** Thin page-scroll progress bar; updates via transform only. */
 export function ScrollProgress() {
   const ref = useRef<HTMLDivElement>(null)

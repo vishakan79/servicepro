@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import {
-  Bell, CalendarDays, ClipboardList, FileText, LayoutDashboard, LogOut, Menu, MessageSquare, Package, Settings as Cog,
+  Bell, Sparkles, CalendarDays, ClipboardList, FileText, LayoutDashboard, LogOut, Menu, MessageSquare, Package, Settings as Cog,
   ShieldCheck, Users, UserCog, Wrench, BarChart3, Inbox, X, ChevronDown, MapPin, Plus,
 } from 'lucide-react'
 import { useAuth } from '../auth/AuthContext'
@@ -45,6 +45,7 @@ export const NAV: { to: string; label: string; icon: typeof Bell; roles: Role[] 
   { to: '/feedback', label: 'Feedback', icon: MessageSquare, roles: ['ADMIN', 'MANAGER', 'TECHNICIAN', 'CUSTOMER'] },
   { to: '/users', label: 'Users & Roles', icon: ShieldCheck, roles: ['ADMIN'] },
   { to: '/inquiries', label: 'Demo requests', icon: Inbox, roles: ['ADMIN'] },
+  { to: '/ai', label: 'AI Assistant', icon: Sparkles, roles: [...ALL, 'INVENTORY_MANAGER'] },
   { to: '/settings', label: 'Settings', icon: Cog, roles: [...ALL, 'INVENTORY_MANAGER'] },
 ]
 
@@ -112,6 +113,7 @@ export default function Layout() {
 
           <div className="hdr-r">
             <LanguageSelect compact />
+            <Link to="/ai" className="ai-pill" aria-label={t('AI Assistant')}><Sparkles size={15} /><span>AI</span></Link>
             <div className="rel">
               <button className="icon-btn bell" aria-label={t('Notifications')} onClick={() => { setBell(!bell); setMenu(false); setMore(false); markRead() }}>
                 <Bell size={19} />
