@@ -19,7 +19,7 @@ import com.fieldservicely.exception.ApiException;
 import com.fieldservicely.repository.CustomerRepository;
 import com.fieldservicely.repository.RefreshTokenRepository;
 import com.fieldservicely.repository.UserRepository;
-import com.fieldservicely.security.FirebaseTokenVerifier;
+import com.fieldservicely.security.SupabaseEmailVerifier;
 import com.fieldservicely.security.JwtService;
 import com.fieldservicely.security.LoginRateLimiter;
 import com.fieldservicely.util.PhoneNumbers;
@@ -57,20 +57,20 @@ public class AuthService {
     private final JwtService jwt;
     private final LoginRateLimiter limiter;
     private final AppProperties props;
-    private final FirebaseTokenVerifier firebase;
+    private final SupabaseEmailVerifier emailProof;
     private final PasswordEncoder encoder;
     /** Compared against when the email is unknown, so a wrong email and a wrong password take the same time. */
     private final String dummyHash;
 
     public AuthService(UserRepository users, CustomerRepository customers, RefreshTokenRepository refreshTokens, JwtService jwt,
-                       LoginRateLimiter limiter, AppProperties props, FirebaseTokenVerifier firebase, PasswordEncoder encoder) {
+                       LoginRateLimiter limiter, AppProperties props, SupabaseEmailVerifier emailProof, PasswordEncoder encoder) {
         this.users = users;
         this.customers = customers;
         this.refreshTokens = refreshTokens;
         this.jwt = jwt;
         this.limiter = limiter;
         this.props = props;
-        this.firebase = firebase;
+        this.emailProof = emailProof;
         this.encoder = encoder;
         this.dummyHash = encoder.encode("not-a-real-password-" + RANDOM.nextLong());
     }
@@ -117,7 +117,7 @@ public class AuthService {
         String key = "reg|" + clientIp + "|" + email;
         if (limiter.isBlocked(key)) throw new ApiException.TooManyRequests("Too many failed attempts. Try again later.");
         try {
-            String provenEmail = firebase.verifyEmail(in.emailIdToken());
+            String provenEmail = emailProof.verifyEmail(in.emailIdToken());
             if (!provenEmail.equals(email)) throw new ApiException.Unauthorized("The verified email address does not match the one entered.");
         } catch (ApiException.Unauthorized ex) {
             limiter.recordFailure(key);
@@ -173,7 +173,7 @@ public class AuthService {
         String key = "reset|" + clientIp + "|" + email;
         if (limiter.isBlocked(key)) throw new ApiException.TooManyRequests("Too many failed attempts. Try again later.");
         try {
-            String proven = firebase.verifyEmail(in.emailIdToken());
+            String proven = emailProof.verifyEmail(in.emailIdToken());
             if (!proven.equals(email)) throw new ApiException.Unauthorized("The verified email address does not match the one entered.");
         } catch (ApiException.Unauthorized ex) {
             limiter.recordFailure(key);

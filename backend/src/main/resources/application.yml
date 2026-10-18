@@ -78,6 +78,9 @@ app:
     enabled: false
   firebase:
     project-id: ${FIREBASE_PROJECT_ID:servicepro-a8d32}
+  supabase:
+    url: ${SUPABASE_URL:https://iieezinmoraukeznnpfk.supabase.co}
+    anon-key: ${SUPABASE_ANON_KEY:sb_publishable_g0skT6KSK3Ngwyefjxso4Q_9llXCgJp}
   bootstrap:
     admin-name: ${BOOTSTRAP_ADMIN_NAME:Administrator}
     admin-email: ${BOOTSTRAP_ADMIN_EMAIL:}

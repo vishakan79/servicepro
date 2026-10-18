@@ -5,7 +5,7 @@ import { useAuth } from '../auth/AuthContext'
 import { Logo } from '../components/Layout'
 import * as http from '../api/http'
 import { LANGUAGES, LanguageSelect, useT } from '../i18n'
-import { completeEmailLink, isEmailLink, rememberedEmail, sendEmailLink } from '../auth/firebase'
+import { isEmailLink, rememberedEmail, sendEmailCode, takeLinkToken, verifyEmailCode } from '../auth/email'
 
 const features = [
   { icon: FileText, label: 'Service Requests' },
@@ -100,8 +100,8 @@ export default function Login({ initial = 'login' }: { initial?: 'login' | 'regi
   const [name, setName] = useState('')
   const [role, setRole] = useState('CUSTOMER')
   const [address, setAddress] = useState('')
-  const [askEmail, setAskEmail] = useState(false)
   const emailToken = useRef<string>('')
+  const [code, setCode] = useState('')
 
   const phone = toE164(dial, mobile)
   const draft = (): Draft => ({ name: name.trim(), email: email.trim(), dial, mobile, role, address: address.trim() })
@@ -127,29 +127,21 @@ export default function Login({ initial = 'login' }: { initial?: 'login' | 'regi
         const saved = sessionStorage.getItem(TOKEN_KEY)
         if (saved && d) { emailToken.current = saved; if (alive) { setMode('register'); setStep('verify') } return }
       } catch { /* ignore */ }
-      if (!(await isEmailLink())) return
+      if (!isEmailLink()) return
       if (!alive) return
       setMode('register')
       const addr = d?.email || rememberedEmail()
-      if (!addr) { setAskEmail(true); setStep('emailSent'); setInfo('Type the email address you registered with to finish verifying it.'); return }
-      await finishEmailLink(addr, !d)
+      const tok = takeLinkToken()
+      if (!tok) return
+      emailToken.current = tok
+      try { sessionStorage.setItem(TOKEN_KEY, tok) } catch { /* ignore */ }
+      if (addr) setEmail(addr)
+      if (!d) { setStep('details'); setInfo('Email verified. Re-enter your details, then continue.'); return }
+      setStep('verify'); setInfo('Email verified. Now set a password.')
     })()
     return () => { alive = false }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
-
-  const finishEmailLink = async (addr: string, lostDraft: boolean) => {
-    setBusy(true); setErr('')
-    try {
-      emailToken.current = await completeEmailLink(addr)
-      try { sessionStorage.setItem(TOKEN_KEY, emailToken.current) } catch { /* ignore */ }
-      setEmail(addr); setAskEmail(false)
-      window.history.replaceState(null, '', '/register') // drop the one-time link parameters from the address bar
-      setStep('verify')
-      setInfo(lostDraft ? 'Email verified. Re-enter your details, then continue.' : 'Email verified. Now set a password and verify your mobile number.')
-      if (lostDraft) setStep('details')
-    } catch (e) { setErr(errText(e)); setStep('details') } finally { setBusy(false) }
-  }
 
   // ---- sign in
   const signIn = () => run(async () => {
@@ -168,12 +160,15 @@ export default function Login({ initial = 'login' }: { initial?: 'login' | 'regi
     if (role === 'CUSTOMER' && !address.trim()) throw new Error('Enter your service address')
     await http.registerStart({ name: name.trim(), email: email.trim(), phone, role, address: address.trim() || undefined }) // rejects duplicates early
     saveDraft(draft())
-    await sendEmailLink(email.trim(), `${window.location.origin}/register`)
-    setStep('emailSent'); setInfo(`We emailed a verification link to ${email.trim()}. Open it in this browser.`); startCountdown()
+    await sendEmailCode(email.trim(), `${window.location.origin}/register`)
+    setCode(''); setStep('emailSent'); setInfo(`We emailed a verification code to ${email.trim()}.`); startCountdown()
   })
-  const confirmTypedEmail = () => run(async () => {
-    if (!EMAIL_OK.test(email.trim())) throw new Error('Enter a valid email address')
-    await finishEmailLink(email.trim(), !loadDraft())
+  const confirmCode = () => run(async () => {
+    if (code.replace(/\D/g, '').length < 6) throw new Error('Enter the code from the email')
+    const tok = await verifyEmailCode(email.trim(), code)
+    emailToken.current = tok
+    try { sessionStorage.setItem(TOKEN_KEY, tok) } catch { /* ignore */ }
+    setStep('verify'); setInfo('Email verified. Now set a password.')
   })
   const finishRegister = () => run(async () => {
     if (!PASSWORD_OK.test(password)) throw new Error('Password must be 8-72 characters with at least one letter and one digit')
@@ -190,7 +185,7 @@ export default function Login({ initial = 'login' }: { initial?: 'login' | 'regi
     if (busy) return
     if (mode === 'login') return signIn()
     if (step === 'details') return sendLink()
-    if (step === 'emailSent') return askEmail ? confirmTypedEmail() : undefined
+    if (step === 'emailSent') return confirmCode()
     return finishRegister()
   }
 
@@ -251,7 +246,7 @@ export default function Login({ initial = 'login' }: { initial?: 'login' | 'regi
               {mode === 'register' && (
                 <ol className="vsteps" aria-label="Registration steps">
                   <li className={stepNo >= 1 ? 'on' : ''}>{t('Details')}</li>
-                  <li className={stepNo >= 2 ? 'on' : ''}>{t('Email link')}</li>
+                  <li className={stepNo >= 2 ? 'on' : ''}>{t('Email code')}</li>
                   <li className={stepNo >= 3 ? 'on' : ''}>{t('Set password')}</li>
                 </ol>
               )}
@@ -267,7 +262,7 @@ export default function Login({ initial = 'login' }: { initial?: 'login' | 'regi
                 </>
               )}
 
-              {(mode === 'login' || step === 'details' || askEmail) && (
+              {(mode === 'login' || step === 'details') && (
                 <label className="field"><span className="field-l">{t('Email address')}</span>
                   <span className="inp"><Mail size={17} /><input type="email" autoComplete="email" maxLength={160} placeholder="you@example.com" value={email} onChange={(e) => { setEmail(e.target.value); setErr('') }} /></span>
                 </label>
@@ -290,13 +285,17 @@ export default function Login({ initial = 'login' }: { initial?: 'login' | 'regi
                 </label>
               )}
 
-              {mode === 'register' && step === 'emailSent' && !askEmail && (
-                <div className="mailnote">
-                  <Mail size={22} />
-                  <p>{t('Open the email from Firebase and click the link. This page continues automatically in the tab that opens.')}</p>
-                  <button type="button" className="link" disabled={left > 0 || busy} onClick={() => sendLink()}>{left > 0 ? t('Resend link in {n}s', { n: left }) : t('Resend link')}</button>
-                  {' · '}<button type="button" className="link" onClick={() => { setStep('details'); setErr(''); setInfo('') }}>{t('Change details')}</button>
-                </div>
+              {mode === 'register' && step === 'emailSent' && (
+                <>
+                  <label className="field"><span className="field-l">{t('Verification code')}</span>
+                    <span className="inp"><Mail size={17} /><input inputMode="numeric" autoComplete="one-time-code" maxLength={10} placeholder="123456" value={code} onChange={(e) => { setCode(e.target.value); setErr('') }} /></span>
+                  </label>
+                  <div className="mailnote">
+                    <p>{t('Enter the code we emailed you. If the email has a link instead, open it in this browser.')}</p>
+                    <button type="button" className="link" disabled={left > 0 || busy} onClick={() => sendLink()}>{left > 0 ? t('Resend code in {n}s', { n: left }) : t('Resend code')}</button>
+                    {' · '}<button type="button" className="link" onClick={() => { setStep('details'); setErr(''); setInfo('') }}>{t('Change details')}</button>
+                  </div>
+                </>
               )}
 
               {mode === 'register' && step === 'verify' && (
@@ -310,11 +309,11 @@ export default function Login({ initial = 'login' }: { initial?: 'login' | 'regi
               {err && <div className="err" role="alert">{err}</div>}
               {info && !err && <div className="info" role="status">{info}</div>}
 
-              {!(mode === 'register' && step === 'emailSent' && !askEmail) && (
+              {(
                 <button type="submit" className="btn p big" disabled={busy}>
                   {busy ? t('Please wait…')
                     : mode === 'login' ? <><LogIn size={18} /> {t('Sign in')}</>
-                    : step === 'details' ? <><Mail size={18} /> {t('Verify my email')}</>
+                    : step === 'details' ? <><Mail size={18} /> {t('Send verification code')}</>
                     : step === 'emailSent' ? <><Mail size={18} /> {t('Confirm email')}</>
                     : <><ShieldCheck size={18} /> {t('Create account')}</>}
                 </button>

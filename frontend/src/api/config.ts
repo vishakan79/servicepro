@@ -20,3 +20,9 @@ export const FIREBASE = {
   projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID ?? '',
   appId: import.meta.env.VITE_FIREBASE_APP_ID ?? '',
 }
+
+/** Supabase project used for email verification. The anon/publishable key is public by design; the server re-verifies every token. */
+export const SUPABASE = {
+  url: import.meta.env.VITE_SUPABASE_URL ?? 'https://iieezinmoraukeznnpfk.supabase.co',
+  anonKey: import.meta.env.VITE_SUPABASE_ANON_KEY ?? 'sb_publishable_g0skT6KSK3Ngwyefjxso4Q_9llXCgJp',
+}
