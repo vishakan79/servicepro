@@ -8,7 +8,7 @@ const EMAIL_KEY = 'sp.emailForSignIn'
 const remember = (email: string) => { try { localStorage.setItem(EMAIL_KEY, email) } catch { /* private mode */ } }
 export const rememberedEmail = (): string => { try { return localStorage.getItem(EMAIL_KEY) ?? '' } catch { return '' } }
 
-async function call<T>(path: string, body: unknown): Promise<T> {
+async function call<T>(path: string, body: unknown, verifying = false): Promise<T> {
   let res: Response
   try {
     res = await fetch(`${SUPABASE.url}/auth/v1${path}`, {
@@ -23,7 +23,13 @@ async function call<T>(path: string, body: unknown): Promise<T> {
   if (!res.ok) {
     const code = data.error_code ?? ''
     if (res.status === 429 || code === 'over_email_send_rate_limit') throw new Error('Too many emails requested. Please wait a few minutes and try again.')
-    if (code === 'otp_expired' || /expired|invalid/i.test(data.msg ?? data.message ?? '')) throw new Error('That code is not correct or has expired. Request a new one.')
+    const raw = data.msg ?? data.error_description ?? data.message ?? ''
+    if (verifying && (code === 'otp_expired' || /expired|invalid/i.test(raw))) throw new Error('That code is not correct or has expired. Request a new one.')
+    if (!verifying) {
+      if (code === 'email_address_not_authorized') throw new Error('Email sending is not set up yet: the Supabase project needs custom SMTP (Auth > Emails > SMTP Settings).')
+      if (code === 'unexpected_failure' || /sending .*email/i.test(raw)) throw new Error('The email could not be sent. The mail (SMTP) settings in Supabase need to be checked.')
+      throw new Error(`${raw || 'Could not send the code.'}${code ? ` (${code})` : ''}`)
+    }
     throw new Error(data.msg ?? data.error_description ?? data.message ?? 'Email verification failed. Try again.')
   }
   return data as T
@@ -37,7 +43,7 @@ export async function sendEmailCode(email: string, returnUrl: string): Promise<v
 
 /** Checks the typed code and returns a Supabase access token proving the mailbox, for our server to verify. */
 export async function verifyEmailCode(email: string, code: string): Promise<string> {
-  const r = await call<{ access_token?: string }>('/verify', { type: 'email', email, token: code.replace(/\s/g, '') })
+  const r = await call<{ access_token?: string }>('/verify', { type: 'email', email, token: code.replace(/\s/g, '') }, true)
   if (!r.access_token) throw new Error('Email verification failed. Request a new code.')
   return r.access_token
 }
