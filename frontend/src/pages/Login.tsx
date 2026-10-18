@@ -215,10 +215,11 @@ export default function Login({ initial = 'login' }: { initial?: 'login' | 'regi
             <p>{t('A real job, start to finish')}</p>
             <ol>{FLOW.map((x, i) => <li key={x}><b>{i + 1}</b>{t(x)}</li>)}</ol>
           </div>
-          <div className="hero-stats">
-            <div><b>{LANGUAGES.length}</b><small>{t('Languages')}</small></div>
-            <div><b>AI</b><small>{t('Assistant for every role')}</small></div>
-            <div><b>GST</b><small>{t('Ready invoices')}</small></div>
+          <div className="hero-chips">
+            <span>{t('₹ INR billing')}</span>
+            <span>{t('GST-ready invoices')}</span>
+            <span>{LANGUAGES.length} {t('Languages')}</span>
+            <span>{t('AI assistant for every role')}</span>
           </div>
           <div className="hero-ind">
             {INDUSTRIES.map((x) => <span key={x}>{t(x)}</span>)}
