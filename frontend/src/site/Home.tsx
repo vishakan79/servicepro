@@ -385,7 +385,7 @@ function SiteFooter() {
           <Link to={user ? '/dashboard' : '/login'}>{user ? 'Open app' : 'Sign in'}</Link>
         </div>
       </div>
-      <div className="wrap ftr-base">© {new Date().getFullYear()} ServicePro · Chennai field service desk</div>
+      <div className="wrap ftr-base">© {new Date().getFullYear()} ServicePro · Field service management for businesses across India</div>
     </footer>
   )
 }

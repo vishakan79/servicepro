@@ -41,7 +41,7 @@ export const PLATFORM = [
 export const TRUST = [
   { icon: ShieldCheck, title: 'Role-based access', text: 'Every request is checked on the server. A customer can only ever read their own records.' },
   { icon: Zap, title: 'Short-lived sessions', text: '15-minute access tokens and rotating refresh tokens in an httpOnly cookie. Reuse of a stolen token signs the user out everywhere.' },
-  { icon: MapPin, title: 'Built for Chennai teams', text: 'Indian rupee, GST on invoices, local areas on the map, India time zone throughout.' },
+  { icon: MapPin, title: 'Built for teams across India', text: 'Indian rupee, GST on invoices, 12+ Indian languages, and India time zone throughout, for service teams in any city.' },
   { icon: Smartphone, title: 'Phone first for the field', text: 'Technicians work from a phone. The layout adapts from 360 px phones to wide desks.' },
 ]
 

@@ -4,13 +4,13 @@ import { useStore } from '../api/store'
 import { Avatar, Badge, Card, Empty, PageHeader } from '../components/ui'
 
 const AREAS: [string, number, number][] = [
-  ['Anna Nagar', 230, 150], ['Egmore', 385, 185], ['T. Nagar', 290, 285], ['Mylapore', 445, 280], ['Guindy', 225, 365], ['Adyar', 400, 365], ['Velachery', 310, 450], ['Besant Nagar', 505, 405],
+  ['North zone', 230, 150], ['East zone', 385, 185], ['Central zone', 290, 285], ['City centre', 445, 280], ['West zone', 225, 365], ['South-east zone', 400, 365], ['South zone', 310, 450], ['Coastal zone', 505, 405],
 ]
 
-export function ChennaiMap({ children }: { children?: React.ReactNode }) {
+export function ServiceMap({ children }: { children?: React.ReactNode }) {
   return (
     <div className="map">
-      <svg viewBox="0 0 680 540" role="img" aria-label="Map of Chennai with technician positions">
+      <svg viewBox="0 0 680 540" role="img" aria-label="Service area map with technician positions">
         <rect width="680" height="540" fill="#e6ece6" />
         <path d="M575 0 L680 0 L680 540 L560 540 Q590 430 570 330 Q550 220 575 0Z" fill="#b9d3da" />
         <path d="M0 330 Q120 300 230 340 Q330 370 440 335 Q520 312 575 330" stroke="#b9d3da" strokeWidth="14" fill="none" />
@@ -20,7 +20,6 @@ export function ChennaiMap({ children }: { children?: React.ReactNode }) {
         <g stroke="#f9d98a" strokeWidth="5" fill="none" strokeLinecap="round"><path d="M0 290 L560 300" /><path d="M210 0 L250 540" /></g>
         <g fill="#d7e6cd"><rect x="80" y="120" width="60" height="55" rx="8" /><rect x="340" y="395" width="70" height="40" rx="8" /><rect x="480" y="150" width="60" height="50" rx="8" /></g>
         {AREAS.map(([n, x, y]) => <text key={n} x={x} y={y} fontSize="11" fill="#8b8dad" textAnchor="middle">{n}</text>)}
-        <text x="625" y="270" fontSize="12" fill="#4f7f8c" textAnchor="middle">Bay of Bengal</text>
         {children}
       </svg>
     </div>
@@ -53,7 +52,7 @@ export default function Tracking() {
         <span className="badge green">● Live</span>
       </div>
       <div className="trk">
-        <ChennaiMap>
+        <ServiceMap>
           {live.filter((l) => l.job && l.c).map(({ t, c, pos, job }) => (
             <g key={t.id}>
               <path d={`M${pos.x} ${pos.y} L${c!.pos.x} ${c!.pos.y}`} stroke="#2e3192" strokeWidth="3" strokeDasharray="7 6" fill="none" />
@@ -69,7 +68,7 @@ export default function Tracking() {
           {live.filter((l) => !l.job && l.state !== 'On Leave').map(({ t }) => (
             <g key={t.id} transform={`translate(${t.home.x} ${t.home.y})`}><circle r="8" fill="#8b8dad" stroke="#fff" strokeWidth="3" /><text x="0" y="22" textAnchor="middle" fontSize="11" fontWeight="600" fill="#475569" stroke="#fff" strokeWidth="3" paintOrder="stroke">{t.name}</text></g>
           ))}
-        </ChennaiMap>
+        </ServiceMap>
 
         <div className="stack" style={{ gap: 12 }}>
           {shown.map(({ t, job, c, state }) => (

@@ -4,6 +4,7 @@ import { Bell, BarChart3, CalendarDays, CheckCircle2, ClipboardList, Eye, EyeOff
 import { useAuth } from '../auth/AuthContext'
 import { Logo } from '../components/Layout'
 import * as http from '../api/http'
+import { LANGUAGES, LanguageSelect, useT } from '../i18n'
 import { completeEmailLink, isEmailLink, rememberedEmail, sendEmailLink } from '../auth/firebase'
 
 const features = [
@@ -17,6 +18,8 @@ const features = [
   { icon: Bell, label: 'Notifications & Alerts' },
   { icon: Settings, label: 'SLA Tracking & Compliance' },
 ]
+
+const INDUSTRIES = ['AC & Refrigeration', 'Electrical', 'Plumbing', 'Appliance Repair', 'Facility Maintenance']
 
 const COUNTRIES = [['+91', 'India +91'], ['+1', 'US/Canada +1'], ['+44', 'UK +44'], ['+971', 'UAE +971'], ['+65', 'Singapore +65'], ['+61', 'Australia +61']]
 const ROLES: [string, string][] = [['CUSTOMER', 'Customer'], ['TECHNICIAN', 'Technician (needs admin approval)'], ['MANAGER', 'Manager (needs admin approval)'], ['INVENTORY_MANAGER', 'Inventory Manager (needs admin approval)']]
@@ -48,12 +51,13 @@ function CodeInput({ value, onChange, label }: { value: string; onChange: (v: st
 }
 
 export function PasswordInput({ label, value, onChange, auto, hint }: { label: string; value: string; onChange: (v: string) => void; auto: string; hint?: string }) {
+  const t = useT()
   const [show, setShow] = useState(false)
   return (
     <label className="field">
-      <span className="field-l">{label}</span>
+      <span className="field-l">{t(label)}</span>
       <span className="inp"><Lock size={17} />
-        <input type={show ? 'text' : 'password'} autoComplete={auto} maxLength={72} placeholder={hint ?? 'Password'} value={value} onChange={(e) => onChange(e.target.value)} />
+        <input type={show ? 'text' : 'password'} autoComplete={auto} maxLength={72} placeholder={t(hint ?? 'Password')} value={value} onChange={(e) => onChange(e.target.value)} />
         <button type="button" className="eye" aria-label={show ? 'Hide password' : 'Show password'} onClick={() => setShow((v) => !v)}>{show ? <EyeOff size={16} /> : <Eye size={16} />}</button>
       </span>
     </label>
@@ -74,6 +78,7 @@ function useCountdown() {
 type Step = 'details' | 'emailSent' | 'verify'
 
 export default function Login({ initial = 'login' }: { initial?: 'login' | 'register' }) {
+  const t = useT()
   const { acceptSession } = useAuth()
   const nav = useNavigate()
   const loc = useLocation() as { state?: { from?: string } }
@@ -194,59 +199,73 @@ export default function Login({ initial = 'login' }: { initial?: 'login' | 'regi
       <section className="hero">
         <div className="hero-top">
           <Logo dark sub />
-          <div className="hero-tag"><i />Chennai field service desk</div>
+          <div className="hero-tag"><i />{t('Field service software for businesses across India')}</div>
         </div>
-        <h1>Every job,<br /><span>from call to invoice.</span></h1>
-        <p>Manage service requests, assign technicians, track work orders, handle <b>inventory</b>, and deliver great customer experiences — all in one powerful platform.</p>
+        <h1>{t('Every job,')}<br /><span>{t('from call to invoice.')}</span></h1>
+        <p>{t('Manage service requests, assign technicians, track work orders, handle inventory, and deliver great customer experiences, all in one platform.')}</p>
         <ul className="feat">
           {features.map((f, i) => (
-            <li key={f.label} style={{ animationDelay: `${i * 70 + 200}ms` }}><span style={{ background: '#f59e0b' }}><f.icon size={20} /></span>{f.label}</li>
+            <li key={f.label} style={{ animationDelay: `${i * 70 + 200}ms` }}><span><f.icon size={20} /></span>{t(f.label)}</li>
           ))}
         </ul>
+        <div className="hero-foot">
+          <div className="hero-stats">
+            <div><b>{LANGUAGES.length}</b><small>{t('Languages')}</small></div>
+            <div><b>{t('Pan-India')}</b><small>{t('Any city, any team')}</small></div>
+            <div><b>5</b><small>{t('Role-based access levels')}</small></div>
+          </div>
+          <div className="hero-chips">
+            <span>{t('₹ INR billing')}</span>
+            <span>{t('GST-ready invoices')}</span>
+          </div>
+          <div className="hero-ind">
+            {INDUSTRIES.map((x) => <span key={x}>{t(x)}</span>)}
+          </div>
+        </div>
       </section>
 
       <section className="login-r">
-        <div className="lang"><Globe size={17} /> English</div>
+        <div className="login-top"><LanguageSelect /></div>
         <form className="login-card" onSubmit={submit} noValidate>
           <Logo sub />
           <div className="auth-tabs" role="tablist">
-            <button type="button" role="tab" aria-selected={mode === 'login'} className={mode === 'login' ? 'on' : ''} onClick={() => reset('login')}><LogIn size={15} /> Sign in</button>
-            <button type="button" role="tab" aria-selected={mode === 'register'} className={mode === 'register' ? 'on' : ''} onClick={() => reset('register')}><UserPlus size={15} /> Register</button>
+            <button type="button" role="tab" aria-selected={mode === 'login'} className={mode === 'login' ? 'on' : ''} onClick={() => reset('login')}><LogIn size={15} /> {t('Sign in')}</button>
+            <button type="button" role="tab" aria-selected={mode === 'register'} className={mode === 'register' ? 'on' : ''} onClick={() => reset('register')}><UserPlus size={15} /> {t('Register')}</button>
           </div>
 
           {done ? (
             <div className="done" role="status">
               <ShieldCheck size={30} />
-              <h2>Verified</h2>
+              <h2>{t('Verified')}</h2>
               <p>{done}</p>
-              <button type="button" className="btn big" onClick={() => reset('login')}>Back to sign in</button>
+              <button type="button" className="btn big" onClick={() => reset('login')}>{t('Back to sign in')}</button>
             </div>
           ) : (
             <>
-              <h2>{mode === 'login' ? 'Welcome Back' : 'Create your account'}</h2>
-              <p className="muted">{mode === 'login' ? 'Sign in with your email and password.' : 'We verify your email address before the account is created.'}</p>
+              <h2>{mode === 'login' ? t('Welcome Back') : t('Create your account')}</h2>
+              <p className="muted">{mode === 'login' ? t('Sign in with your email and password.') : t('We verify your email address before the account is created.')}</p>
 
               {mode === 'register' && (
                 <ol className="vsteps" aria-label="Registration steps">
-                  <li className={stepNo >= 1 ? 'on' : ''}>Details</li>
-                  <li className={stepNo >= 2 ? 'on' : ''}>Email link</li>
-                  <li className={stepNo >= 3 ? 'on' : ''}>Set password</li>
+                  <li className={stepNo >= 1 ? 'on' : ''}>{t('Details')}</li>
+                  <li className={stepNo >= 2 ? 'on' : ''}>{t('Email link')}</li>
+                  <li className={stepNo >= 3 ? 'on' : ''}>{t('Set password')}</li>
                 </ol>
               )}
 
               {mode === 'register' && step === 'details' && (
                 <>
-                  <label className="field"><span className="field-l">I am a</span>
-                    <select value={role} onChange={(e) => setRole(e.target.value)}>{ROLES.map(([v, l]) => <option key={v} value={v}>{l}</option>)}</select>
+                  <label className="field"><span className="field-l">{t('I am a')}</span>
+                    <select value={role} onChange={(e) => setRole(e.target.value)}>{ROLES.map(([v, l]) => <option key={v} value={v}>{t(l)}</option>)}</select>
                   </label>
-                  <label className="field"><span className="field-l">Full name</span>
-                    <span className="inp"><Users size={17} /><input autoComplete="name" maxLength={120} placeholder="Your name" value={name} onChange={(e) => setName(e.target.value)} /></span>
+                  <label className="field"><span className="field-l">{t('Full name')}</span>
+                    <span className="inp"><Users size={17} /><input autoComplete="name" maxLength={120} placeholder={t('Your name')} value={name} onChange={(e) => setName(e.target.value)} /></span>
                   </label>
                 </>
               )}
 
               {(mode === 'login' || step === 'details' || askEmail) && (
-                <label className="field"><span className="field-l">Email address</span>
+                <label className="field"><span className="field-l">{t('Email address')}</span>
                   <span className="inp"><Mail size={17} /><input type="email" autoComplete="email" maxLength={160} placeholder="you@example.com" value={email} onChange={(e) => { setEmail(e.target.value); setErr('') }} /></span>
                 </label>
               )}
@@ -254,7 +273,7 @@ export default function Login({ initial = 'login' }: { initial?: 'login' | 'regi
               {mode === 'login' && <PasswordInput label="Password" value={password} onChange={setPassword} auto="current-password" />}
 
               {mode === 'register' && step === 'details' && (
-                <label className="field"><span className="field-l">Mobile number</span>
+                <label className="field"><span className="field-l">{t('Mobile number')}</span>
                   <span className="phone-row">
                     <select aria-label="Country code" value={dial} onChange={(e) => setDial(e.target.value)}>{COUNTRIES.map(([d, l]) => <option key={d} value={d}>{l}</option>)}</select>
                     <span className="inp"><Phone size={17} /><input type="tel" inputMode="tel" autoComplete="tel-national" maxLength={15} placeholder="98765 43210" value={mobile} onChange={(e) => { setMobile(e.target.value); setErr('') }} /></span>
@@ -263,23 +282,23 @@ export default function Login({ initial = 'login' }: { initial?: 'login' | 'regi
               )}
 
               {mode === 'register' && step === 'details' && role === 'CUSTOMER' && (
-                <label className="field"><span className="field-l">Service address</span>
-                  <span className="inp"><MapPin size={17} /><input autoComplete="street-address" maxLength={300} placeholder="House no, street, area, city" value={address} onChange={(e) => setAddress(e.target.value)} /></span>
+                <label className="field"><span className="field-l">{t('Service address')}</span>
+                  <span className="inp"><MapPin size={17} /><input autoComplete="street-address" maxLength={300} placeholder={t('House no, street, area, city')} value={address} onChange={(e) => setAddress(e.target.value)} /></span>
                 </label>
               )}
 
               {mode === 'register' && step === 'emailSent' && !askEmail && (
                 <div className="mailnote">
                   <Mail size={22} />
-                  <p>Open the email from Firebase and click the link. This page continues automatically in the tab that opens.</p>
-                  <button type="button" className="link" disabled={left > 0 || busy} onClick={() => sendLink()}>{left > 0 ? `Resend link in ${left}s` : 'Resend link'}</button>
-                  {' · '}<button type="button" className="link" onClick={() => { setStep('details'); setErr(''); setInfo('') }}>Change details</button>
+                  <p>{t('Open the email from Firebase and click the link. This page continues automatically in the tab that opens.')}</p>
+                  <button type="button" className="link" disabled={left > 0 || busy} onClick={() => sendLink()}>{left > 0 ? t('Resend link in {n}s', { n: left }) : t('Resend link')}</button>
+                  {' · '}<button type="button" className="link" onClick={() => { setStep('details'); setErr(''); setInfo('') }}>{t('Change details')}</button>
                 </div>
               )}
 
               {mode === 'register' && step === 'verify' && (
                 <>
-                  <p className="okline"><CheckCircle2 size={16} /> Email verified: {email.trim()}</p>
+                  <p className="okline"><CheckCircle2 size={16} /> {t('Email verified:')} {email.trim()}</p>
                   <PasswordInput label="Choose a password" value={password} onChange={setPassword} auto="new-password" hint="8+ characters, a letter and a digit" />
                   <PasswordInput label="Confirm password" value={password2} onChange={setPassword2} auto="new-password" />
                 </>
@@ -290,20 +309,20 @@ export default function Login({ initial = 'login' }: { initial?: 'login' | 'regi
 
               {!(mode === 'register' && step === 'emailSent' && !askEmail) && (
                 <button type="submit" className="btn p big" disabled={busy}>
-                  {busy ? 'Please wait…'
-                    : mode === 'login' ? <><LogIn size={18} /> Sign in</>
-                    : step === 'details' ? <><Mail size={18} /> Verify my email</>
-                    : step === 'emailSent' ? <><Mail size={18} /> Confirm email</>
-                    : <><ShieldCheck size={18} /> Create account</>}
+                  {busy ? t('Please wait…')
+                    : mode === 'login' ? <><LogIn size={18} /> {t('Sign in')}</>
+                    : step === 'details' ? <><Mail size={18} /> {t('Verify my email')}</>
+                    : step === 'emailSent' ? <><Mail size={18} /> {t('Confirm email')}</>
+                    : <><ShieldCheck size={18} /> {t('Create account')}</>}
                 </button>
               )}
 
               <p className="muted center">
                 {mode === 'login'
-                  ? <>New here? <button type="button" className="link" onClick={() => reset('register')}>Create an account</button></>
-                  : <>Already registered? <button type="button" className="link" onClick={() => reset('login')}>Sign in</button></>}
+                  ? <>{t('New here?')} <button type="button" className="link" onClick={() => reset('register')}>{t('Create an account')}</button></>
+                  : <>{t('Already registered?')} <button type="button" className="link" onClick={() => reset('login')}>{t('Sign in')}</button></>}
               </p>
-              <p className="muted center small">{mode === 'login' ? <>Forgot your password? <Link to="/forgot-password">Reset it by email</Link></> : 'Administrator accounts are created by an existing administrator.'}</p>
+              <p className="muted center small">{mode === 'login' ? <>{t('Forgot your password?')} <Link to="/forgot-password">{t('Reset it by email')}</Link></> : t('Administrator accounts are created by an existing administrator.')}</p>
             </>
           )}
         </form>

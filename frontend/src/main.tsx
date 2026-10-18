@@ -6,16 +6,19 @@ import { AuthProvider } from './auth/AuthContext'
 import { ApiStoreProvider } from './api/ApiStoreProvider'
 import { HASH_ROUTER } from './api/config'
 import ErrorBoundary from './components/ErrorBoundary'
+import { LangProvider } from './i18n'
 import '@fontsource-variable/plus-jakarta-sans'
 import './styles/global.css'
 import './styles/pages.css'
 import './styles/theme.css'
+import './styles/login.css'
 
 const Router = HASH_ROUTER ? HashRouter : BrowserRouter
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
     <ErrorBoundary>
+    <LangProvider>
     <Router>
       <AuthProvider>
         <ApiStoreProvider>
@@ -23,6 +26,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
         </ApiStoreProvider>
       </AuthProvider>
     </Router>
+    </LangProvider>
     </ErrorBoundary>
   </React.StrictMode>,
 )

@@ -10,20 +10,23 @@ import { fmtDateTime } from '../api/format'
 import { Avatar } from './ui'
 import ChatWidget from './ChatWidget'
 import { Role } from '../types'
+import { LanguageSelect, useT } from '../i18n'
 import '../styles/glass.css'
 
 export function Logo({ dark = false, sub = false }: { dark?: boolean; sub?: boolean }) {
+  const t = useT()
   return (
     <div className="logo">
       <span className="logo-m"><Wrench size={20} strokeWidth={2.4} /></span>
       <span>
         <span className={`logo-t ${dark ? 'dark' : ''}`}>Service<b>Pro</b></span>
-        {sub && <span className="logo-s">Field Service Management</span>}
+        {sub && <span className="logo-s">{t('Field Service Management')}</span>}
       </span>
     </div>
   )
 }
 
+const ROLE_LABEL: Record<Role, string> = { ADMIN: 'Admin', MANAGER: 'Manager', TECHNICIAN: 'Technician', CUSTOMER: 'Customer', INVENTORY_MANAGER: 'Inventory Manager' }
 const ALL: Role[] = ['ADMIN', 'MANAGER', 'TECHNICIAN', 'CUSTOMER']
 const STAFF: Role[] = ['ADMIN', 'MANAGER']
 export const NAV: { to: string; label: string; icon: typeof Bell; roles: Role[] }[] = [
@@ -49,6 +52,7 @@ const PRIMARY = 4 // items shown in the header bar; the rest sit under "More"
 
 export default function Layout() {
   const { user, logout } = useAuth()
+  const t = useT()
   const { toasts, dismiss, activity, unread, markRead } = useStore()
   const nav = useNavigate()
   const loc = useLocation()
@@ -77,7 +81,7 @@ export default function Layout() {
   const rest = items.slice(PRIMARY)
   const canCreate = user.role !== 'TECHNICIAN' && user.role !== 'INVENTORY_MANAGER'
   const has = (to: string) => items.some((n) => n.to === to)
-  const fl = (to: string, label: string) => (has(to) ? <Link to={to}>{label}</Link> : null)
+  const fl = (to: string, label: string) => (has(to) ? <Link to={to}>{t(label)}</Link> : null)
   const moreActive = rest.some((n) => loc.pathname.startsWith(n.to))
 
   return (
@@ -88,17 +92,17 @@ export default function Layout() {
 
           <nav className="menu" aria-label="Main">
             {main.map((n) => (
-              <NavLink key={n.to} to={n.to} className={({ isActive }) => `m-link ${isActive ? 'on' : ''}`}>{n.label}</NavLink>
+              <NavLink key={n.to} to={n.to} className={({ isActive }) => `m-link ${isActive ? 'on' : ''}`}>{t(n.label)}</NavLink>
             ))}
             {rest.length > 0 && (
               <div className="rel">
                 <button className={`m-link ${moreActive ? 'on' : ''}`} onClick={() => { setMore(!more); setBell(false); setMenu(false) }} aria-haspopup="menu" aria-expanded={more}>
-                  More <ChevronDown size={14} />
+                  {t('More')} <ChevronDown size={14} />
                 </button>
                 {more && (
                   <div className="drop left" role="menu">
                     {rest.map((n) => (
-                      <NavLink key={n.to} to={n.to} className="drop-i row" role="menuitem"><n.icon size={16} /> {n.label}</NavLink>
+                      <NavLink key={n.to} to={n.to} className="drop-i row" role="menuitem"><n.icon size={16} /> {t(n.label)}</NavLink>
                     ))}
                   </div>
                 )}
@@ -107,32 +111,33 @@ export default function Layout() {
           </nav>
 
           <div className="hdr-r">
+            <LanguageSelect compact />
             <div className="rel">
-              <button className="icon-btn bell" aria-label="Notifications" onClick={() => { setBell(!bell); setMenu(false); setMore(false); markRead() }}>
+              <button className="icon-btn bell" aria-label={t('Notifications')} onClick={() => { setBell(!bell); setMenu(false); setMore(false); markRead() }}>
                 <Bell size={19} />
                 {unread > 0 && <span className="dot">{unread > 9 ? '9+' : unread}</span>}
               </button>
               {bell && (
                 <div className="drop wide" role="menu">
-                  <div className="drop-h">Notifications</div>
-                  {activity.length === 0 && <div className="drop-i"><small>No notifications yet.</small></div>}
+                  <div className="drop-h">{t('Notifications')}</div>
+                  {activity.length === 0 && <div className="drop-i"><small>{t('No notifications yet.')}</small></div>}
                   {activity.slice(0, 6).map((a) => (
                     <div key={a.id} className="drop-i"><span>{a.text}</span><small>{fmtDateTime(a.at)}</small></div>
                   ))}
                 </div>
               )}
             </div>
-            {canCreate && <Link to="/requests/new" className="btn p cta"><Plus size={16} /> New Request</Link>}
+            {canCreate && <Link to="/requests/new" className="btn p cta"><Plus size={16} /> {t('New Request')}</Link>}
             <div className="rel">
               <button className="who" onClick={() => { setMenu(!menu); setBell(false); setMore(false) }} aria-haspopup="menu" aria-expanded={menu} aria-label="Account menu">
                 <Avatar name={user.name} size={34} />
-                <span className="who-t"><b>{user.name}</b><small>{user.role[0] + user.role.slice(1).toLowerCase()}</small></span>
+                <span className="who-t"><b>{user.name}</b><small>{t(ROLE_LABEL[user.role])}</small></span>
                 <ChevronDown size={15} />
               </button>
               {menu && (
                 <div className="drop" role="menu">
-                  <button className="drop-b" onClick={() => nav('/settings')}><Cog size={15} /> Settings</button>
-                  <button className="drop-b" onClick={() => { logout(); nav('/login') }}><LogOut size={15} /> Sign out</button>
+                  <button className="drop-b" onClick={() => nav('/settings')}><Cog size={15} /> {t('Settings')}</button>
+                  <button className="drop-b" onClick={() => { logout(); nav('/login') }}><LogOut size={15} /> {t('Sign out')}</button>
                 </div>
               )}
             </div>
@@ -150,12 +155,13 @@ export default function Layout() {
         </div>
         <nav>
           {items.map((n) => (
-            <NavLink key={n.to} to={n.to} className={({ isActive }) => `d-link ${isActive ? 'on' : ''}`}><n.icon size={18} /> {n.label}</NavLink>
+            <NavLink key={n.to} to={n.to} className={({ isActive }) => `d-link ${isActive ? 'on' : ''}`}><n.icon size={18} /> {t(n.label)}</NavLink>
           ))}
         </nav>
         <div className="drawer-foot">
-          {canCreate && <Link to="/requests/new" className="btn p big"><Plus size={16} /> New Request</Link>}
-          <button className="btn big" onClick={() => { logout(); nav('/login') }}><LogOut size={16} /> Sign out</button>
+          {canCreate && <Link to="/requests/new" className="btn p big"><Plus size={16} /> {t('New Request')}</Link>}
+          <LanguageSelect />
+          <button className="btn big" onClick={() => { logout(); nav('/login') }}><LogOut size={16} /> {t('Sign out')}</button>
         </div>
       </aside>
 
@@ -182,11 +188,11 @@ export default function Layout() {
           </div>
           <div>
             <h4>Account</h4>
-            <Link to="/settings">Settings</Link>
-            <button onClick={() => { logout(); nav('/login') }}>Sign out</button>
+            <Link to="/settings">{t('Settings')}</Link>
+            <button onClick={() => { logout(); nav('/login') }}>{t('Sign out')}</button>
           </div>
         </div>
-        <div className="wrap ftr-base">© {new Date().getFullYear()} ServicePro · Chennai field service desk</div>
+        <div className="wrap ftr-base">© {new Date().getFullYear()} ServicePro · {t('Field service software for businesses across India')}</div>
       </footer>
 
       <div className="toasts" aria-live="polite">

@@ -1,0 +1,111 @@
+/* ---- Sign-in / register: professional split layout ---- */
+.login { grid-template-columns: minmax(0, 1.12fr) minmax(0, 1fr); background: #f3f6fb; }
+
+/* Hero */
+.login .hero {
+  padding: 40px clamp(28px, 4.2vw, 64px) 36px;
+  background:
+    radial-gradient(720px 420px at 12% -6%, rgba(46, 108, 230, .55), transparent 62%),
+    radial-gradient(520px 360px at 96% 104%, rgba(217, 80, 10, .26), transparent 60%),
+    linear-gradient(160deg, #0d2b66 0%, #0a1f4d 48%, #071536 100%);
+}
+.login .hero::before {
+  content: ''; position: absolute; inset: 0; pointer-events: none; opacity: .5;
+  background-image: radial-gradient(rgba(255, 255, 255, .13) 1px, transparent 1.4px);
+  background-size: 26px 26px;
+  -webkit-mask-image: linear-gradient(180deg, #000 0%, transparent 75%); mask-image: linear-gradient(180deg, #000 0%, transparent 75%);
+}
+.login .hero > * { position: relative; }
+.login .hero .hero-top { align-items: center; }
+.login .hero-tag {
+  padding: 7px 14px; border-radius: 999px; font-size: 13px; font-weight: 600; color: #dbe7ff;
+  background: rgba(255, 255, 255, .08); border: 1px solid rgba(255, 255, 255, .16); backdrop-filter: blur(6px);
+}
+.login .hero-tag i { width: 8px; height: 8px; border-radius: 50%; background: #34d399; box-shadow: 0 0 0 4px rgba(52, 211, 153, .22); }
+.login .hero h1 { margin-top: clamp(40px, 8vh, 84px); font-size: clamp(36px, 4.4vw, 60px); letter-spacing: -1.8px; line-height: 1.04; }
+.login .hero h1 span { background: linear-gradient(90deg, #fff, #ffb98a); -webkit-background-clip: text; background-clip: text; color: transparent; font-weight: 300; }
+.login .hero p { color: #c6d4f0; font-size: 17px; line-height: 1.6; max-width: 540px; }
+
+.login .feat { max-width: 700px; margin-top: 32px; gap: 12px; }
+.login .feat li {
+  padding: 12px 14px; border-radius: 14px; font-size: 13.5px; font-weight: 600; color: #eaf1ff;
+  background: rgba(255, 255, 255, .06); border: 1px solid rgba(255, 255, 255, .12);
+  transition: background .2s, transform .2s, border-color .2s;
+}
+.login .feat li:hover { background: rgba(255, 255, 255, .11); border-color: rgba(255, 255, 255, .26); transform: translateY(-2px); }
+.login .feat li span { width: 36px; height: 36px; border-radius: 10px; background: linear-gradient(135deg, #e8641c, #c2410c) !important; box-shadow: 0 6px 16px -6px rgba(217, 80, 10, .7); }
+
+.login .hero-foot { margin-top: auto; padding-top: 34px; display: flex; flex-direction: column; gap: 16px; }
+.hero-stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; max-width: 700px; }
+.hero-stats div { padding: 14px 16px; border-radius: 14px; background: rgba(255, 255, 255, .06); border: 1px solid rgba(255, 255, 255, .12); }
+.hero-stats b { display: block; font-size: 24px; font-weight: 800; letter-spacing: -.5px; color: #fff; }
+.hero-stats small { color: #aebfe3; font-size: 12.5px; }
+.hero-chips, .hero-ind { display: flex; flex-wrap: wrap; gap: 8px; }
+.hero-chips span { padding: 6px 12px; border-radius: 999px; font-size: 12.5px; font-weight: 700; color: #fff; background: rgba(217, 80, 10, .9); }
+.hero-ind span { padding: 6px 12px; border-radius: 999px; font-size: 12.5px; font-weight: 600; color: #cfdcf6; border: 1px solid rgba(255, 255, 255, .2); }
+
+/* Right side */
+.login-r { padding: 24px clamp(18px, 4vw, 56px) 32px; background: linear-gradient(180deg, #f7f9fd, #eef2f9); }
+.login-top { display: flex; justify-content: flex-end; }
+.login-card { max-width: 480px; padding: 36px 38px 30px; border: 1px solid #e2e8f3; border-radius: 20px; box-shadow: 0 30px 70px -34px rgba(11, 31, 68, .45), 0 2px 6px rgba(11, 31, 68, .04); }
+.login-card h2 { font-size: 30px; letter-spacing: -.8px; }
+.login-card .btn.p.big { height: 50px; border-radius: 12px; font-size: 15.5px; box-shadow: 0 12px 24px -12px rgba(217, 80, 10, .75); }
+.login-card .field input:focus, .login-card select:focus { outline: 0; }
+.login-card .inp:focus-within { border-color: var(--accent); box-shadow: 0 0 0 4px rgba(217, 80, 10, .14); }
+
+/* Language picker */
+.langsel { position: relative; }
+.langsel-b {
+  display: inline-flex; align-items: center; gap: 8px; height: 40px; padding: 0 14px; cursor: pointer;
+  border: 1px solid #d5ddeb; border-radius: 999px; background: #fff; color: var(--ink);
+  font: inherit; font-size: 14px; font-weight: 600; box-shadow: 0 1px 2px rgba(11, 31, 68, .05); transition: border-color .15s, box-shadow .15s;
+}
+.langsel-b:hover, .langsel-b[aria-expanded='true'] { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(217, 80, 10, .12); }
+.langsel.dark .langsel-b { background: rgba(255, 255, 255, .1); color: #fff; border-color: rgba(255, 255, 255, .28); }
+.langsel.compact .langsel-b { padding: 0 10px; }
+.langsel-l {
+  position: absolute; right: 0; top: calc(100% + 8px); z-index: 60; width: 270px; max-height: min(70vh, 420px); overflow-y: auto;
+  margin: 0; padding: 6px; list-style: none; background: #fff; border: 1px solid #dfe6f2; border-radius: 14px;
+  box-shadow: 0 24px 60px -18px rgba(11, 31, 68, .4);
+}
+.langsel-l button {
+  width: 100%; display: grid; grid-template-columns: 1fr auto auto; align-items: center; gap: 10px; text-align: left;
+  padding: 9px 12px; border: 0; border-radius: 9px; background: none; cursor: pointer; font: inherit; color: var(--ink);
+}
+.langsel-l button:hover { background: #f1f5fb; }
+.langsel-l button.on { background: #fff4ec; color: var(--accent); }
+.langsel-l b { font-size: 15px; font-weight: 700; }
+.langsel-l small { color: #6b7a94; font-size: 12px; }
+
+@media (max-width: 1100px) {
+  .login { grid-template-columns: 1fr; }
+  .login .hero { min-height: 0; padding-bottom: 28px; }
+  .login .hero h1 { margin-top: 28px; }
+  .hero-stats, .login .hero-ind { display: none; }
+}
+@media (max-width: 640px) {
+  .login .feat { grid-template-columns: repeat(2, 1fr); }
+  .login .hero-tag { display: none; }
+  .login-card { padding: 26px 20px; }
+}
+
+/* Indian scripts: fall back to Noto faces (loaded on demand by unicode-range) */
+body, button, input, select, textarea {
+  font-family: 'Plus Jakarta Sans Variable', system-ui, -apple-system, 'Segoe UI', 'Noto Sans Devanagari', 'Noto Sans Tamil', 'Noto Sans Telugu', 'Noto Sans Kannada', 'Noto Sans Malayalam', 'Noto Sans Bengali', 'Noto Sans Gujarati', 'Noto Sans Gurmukhi', 'Noto Sans Oriya', 'Noto Naskh Arabic', sans-serif;
+}
+html[dir='rtl'] .langsel-l { right: auto; left: 0; }
+html[dir='rtl'] .langsel-l button { text-align: right; }
+
+/* Non-Latin scripts read better without the tight tracking used for the English headings */
+html:not([lang='en']) body *, html:not([lang='en']) h1, html:not([lang='en']) h2, html:not([lang='en']) h3 { letter-spacing: normal !important; }
+html:not([lang='en']) .login .hero h1 { line-height: 1.2; }
+
+/* Phones and tablets: keep the form near the top */
+@media (max-width: 1100px) {
+  .login .feat, .login .hero-chips { display: none; }
+  .login .hero { padding: 22px 20px 20px; }
+  .login .hero h1 { font-size: 30px; margin-top: 18px; }
+  .login .hero p { font-size: 14.5px; margin-top: 10px; }
+  .login .hero .logo-m { width: 44px; height: 44px; }
+  .login-r { padding-top: 14px; }
+}

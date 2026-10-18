@@ -1,5 +1,9 @@
 import { ReactNode } from 'react'
 import { Star } from 'lucide-react'
+import { useT } from '../i18n'
+
+/** Translate plain-string content; leave JSX alone. */
+const tr = (t: (s: string) => string, x: ReactNode) => (typeof x === 'string' ? t(x) : x)
 
 const PALETTE = ['#2e3192', '#6a4c93', '#2f7d4f', '#c0521f', '#a23b72', '#6c72d9', '#1c1d4a', '#2b8a9e']
 export const initials = (n: string) => n.replace(/\./g, '').split(' ').filter(Boolean).slice(0, 2).map((p) => p[0]).join('').toUpperCase()
@@ -22,15 +26,17 @@ const TONES: Record<string, string> = {
   'In Stock': 'green', 'Low Stock': 'amber', 'Out of Stock': 'red',
 }
 export function Badge({ children, tone }: { children: string; tone?: string }) {
-  return <span className={`badge ${tone ?? TONES[children] ?? 'gray'}`}>{children}</span>
+  const t = useT()
+  return <span className={`badge ${tone ?? TONES[children] ?? 'gray'}`}>{t(children)}</span>
 }
 
 export function Card({ title, action, children, className = '' }: { title?: ReactNode; action?: ReactNode; children: ReactNode; className?: string }) {
+  const t = useT()
   return (
     <section className={`card ${className}`}>
       {(title || action) && (
         <header className="card-h">
-          <h3>{title}</h3>
+          <h3>{tr(t, title)}</h3>
           {action}
         </header>
       )}
@@ -40,12 +46,13 @@ export function Card({ title, action, children, className = '' }: { title?: Reac
 }
 
 export function StatCard({ icon, tone, value, label, delta }: { icon: ReactNode; tone: string; value: ReactNode; label: string; delta?: { text: string; up: boolean } }) {
+  const t = useT()
   return (
     <div className="stat">
       <span className={`stat-i ${tone}`}>{icon}</span>
       <div>
         <div className="stat-v">{value}</div>
-        <div className="stat-l">{label}</div>
+        <div className="stat-l">{t(label)}</div>
         {delta && <div className={`stat-d ${delta.up ? 'up' : 'down'}`}>{delta.up ? '▲' : '▼'} {delta.text}</div>}
       </div>
     </div>
@@ -63,9 +70,10 @@ export function Stars({ value, size = 14 }: { value: number; size?: number }) {
 }
 
 export function Field({ label, error, required, children }: { label: string; error?: string; required?: boolean; children: ReactNode }) {
+  const t = useT()
   return (
     <label className="field">
-      <span className="field-l">{label}{required && <b className="req"> *</b>}</span>
+      <span className="field-l">{t(label)}{required && <b className="req"> *</b>}</span>
       {children}
       {error && <span className="field-e">{error}</span>}
     </label>
@@ -73,11 +81,12 @@ export function Field({ label, error, required, children }: { label: string; err
 }
 
 export function PageHeader({ title, sub, children }: { title: ReactNode; sub?: string; children?: ReactNode }) {
+  const t = useT()
   return (
     <div className="page-h">
       <div>
-        <h1>{title}</h1>
-        {sub && <p>{sub}</p>}
+        <h1>{tr(t, title)}</h1>
+        {sub && <p>{t(sub)}</p>}
       </div>
       <div className="page-h-a">{children}</div>
     </div>
@@ -85,5 +94,6 @@ export function PageHeader({ title, sub, children }: { title: ReactNode; sub?: s
 }
 
 export function Empty({ text }: { text: string }) {
-  return <div className="empty">{text}</div>
+  const t = useT()
+  return <div className="empty">{t(text)}</div>
 }
