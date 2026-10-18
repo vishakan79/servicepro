@@ -1,0 +1,11 @@
+name: keepalive
+# Render's free plan sleeps after 15 idle minutes and then needs ~3 minutes to boot. A light ping keeps the API awake.
+on:
+  schedule:
+    - cron: '*/10 * * * *'
+  workflow_dispatch:
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - run: curl -fsS -m 120 --retry 3 https://servicepro-api-il9k.onrender.com/actuator/health || true

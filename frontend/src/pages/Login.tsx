@@ -68,6 +68,7 @@ export function PasswordInput({ label, value, onChange, auto, hint }: { label: s
 
 function useCountdown() {
   const [left, setLeft] = useState(0)
+  useEffect(() => { http.warmUp() }, [])
   useEffect(() => {
     if (left <= 0) return
     const t = setTimeout(() => setLeft((n) => n - 1), 1000)

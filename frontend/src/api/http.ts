@@ -29,6 +29,7 @@ async function parseError(res: Response): Promise<ApiError> {
     const b = await res.json()
     return new ApiError(res.status, b.message ?? res.statusText, b.fieldErrors ?? undefined)
   } catch {
+    if ([502, 503, 504].includes(res.status)) return new ApiError(res.status, 'The server is waking up (free hosting). Please wait about a minute and try again.')
     return new ApiError(res.status, res.statusText || 'Request failed')
   }
 }
@@ -114,3 +115,8 @@ export async function fetchAll<T>(path: string, query: Record<string, string | n
 }
 
 export const resetPassword = (d: { email: string; password: string; emailIdToken: string }) => authPost<void>('/password/reset', d)
+
+/** Fire-and-forget request that wakes a sleeping free-tier server while the person is still filling in the form. */
+export function warmUp(): void {
+  try { void fetch(`${API_BASE}/api/auth/ping`, { method: 'GET' }).catch(() => undefined) } catch { /* ignore */ }
+}
