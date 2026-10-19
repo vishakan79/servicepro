@@ -61,6 +61,25 @@ public class JwtService {
                 asLong(c.get("tid")));
     }
 
+    private String proofIssuer() { return props.jwt().issuer() + "-email-proof"; }
+
+    /** A short-lived proof that the holder controls `email` (issued after the emailed code was entered). Not usable as an access token. */
+    public String createEmailProof(String email) {
+        Instant now = Instant.now();
+        return Jwts.builder().issuer(proofIssuer()).subject(email).claim("purpose", "email-proof")
+                .issuedAt(Date.from(now)).expiration(Date.from(now.plusSeconds(30 * 60))).signWith(key).compact();
+    }
+
+    /** @return the proven email address, or null when the token is not a valid, unexpired email proof */
+    public String parseEmailProof(String token) {
+        try {
+            Claims c = Jwts.parser().verifyWith(key).requireIssuer(proofIssuer()).build().parseSignedClaims(token).getPayload();
+            return "email-proof".equals(c.get("purpose", String.class)) ? c.getSubject() : null;
+        } catch (JwtException | IllegalArgumentException e) {
+            return null;
+        }
+    }
+
     public long accessTtlSeconds() {
         return props.jwt().accessTtl().toSeconds();
     }

@@ -19,7 +19,7 @@ import com.fieldservicely.exception.ApiException;
 import com.fieldservicely.repository.CustomerRepository;
 import com.fieldservicely.repository.RefreshTokenRepository;
 import com.fieldservicely.repository.UserRepository;
-import com.fieldservicely.security.SupabaseEmailVerifier;
+import com.fieldservicely.security.EmailProofService;
 import com.fieldservicely.security.JwtService;
 import com.fieldservicely.security.LoginRateLimiter;
 import com.fieldservicely.util.PhoneNumbers;
@@ -57,13 +57,13 @@ public class AuthService {
     private final JwtService jwt;
     private final LoginRateLimiter limiter;
     private final AppProperties props;
-    private final SupabaseEmailVerifier emailProof;
+    private final EmailProofService emailProof;
     private final PasswordEncoder encoder;
     /** Compared against when the email is unknown, so a wrong email and a wrong password take the same time. */
     private final String dummyHash;
 
     public AuthService(UserRepository users, CustomerRepository customers, RefreshTokenRepository refreshTokens, JwtService jwt,
-                       LoginRateLimiter limiter, AppProperties props, SupabaseEmailVerifier emailProof, PasswordEncoder encoder) {
+                       LoginRateLimiter limiter, AppProperties props, EmailProofService emailProof, PasswordEncoder encoder) {
         this.users = users;
         this.customers = customers;
         this.refreshTokens = refreshTokens;

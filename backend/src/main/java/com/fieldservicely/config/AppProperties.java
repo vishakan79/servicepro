@@ -7,7 +7,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 /** Typed view of the `app.*` settings (see application.yml). */
 @ConfigurationProperties(prefix = "app")
 public record AppProperties(String zone, Jwt jwt, Security security, Cors cors, Sla sla, Mail mail, Redis redis, Firebase firebase,
-                            Supabase supabase, Bootstrap bootstrap) {
+                            Bootstrap bootstrap) {
 
     public record Jwt(String secret, String issuer, Duration accessTtl, Duration refreshTtl) {}
 
@@ -25,9 +25,6 @@ public record AppProperties(String zone, Jwt jwt, Security security, Cors cors, 
 
     /** Firebase project whose phone and email-link ID tokens this server accepts. */
     public record Firebase(String projectId) {}
-
-    /** Supabase project whose Auth confirms email ownership (one-time code or link). The anon key is public by design. */
-    public record Supabase(String url, String anonKey) {}
 
     /** The first ADMIN, created at startup when missing. adminPassword is hashed with BCrypt; it is never logged. */
     public record Bootstrap(String adminName, String adminEmail, String adminPhone, String adminPassword) {}

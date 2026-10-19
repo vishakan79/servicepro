@@ -1,7 +1,7 @@
 import { FormEvent, useEffect, useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { Mail, ShieldCheck } from 'lucide-react'
-import { isEmailLink, rememberedEmail, sendEmailCode, takeLinkToken, verifyEmailCode } from '../auth/email'
+import { rememberedEmail, sendEmailCode, verifyEmailCode } from '../auth/email'
 import { resetPassword } from '../api/http'
 import { Logo } from '../components/Layout'
 import { PasswordInput } from './Login'
@@ -21,12 +21,6 @@ export default function ForgotPassword() {
   const token = useRef('')
 
   const [code, setCode] = useState('')
-  useEffect(() => {
-    if (!isEmailLink()) return
-    const tok = takeLinkToken()
-    const addr = rememberedEmail()
-    if (tok && addr) { token.current = tok; setEmail(addr); setStep('set') }
-  }, [])
 
   const run = async (fn: () => Promise<void>) => { setErr(''); setBusy(true); try { await fn() } catch (e) { setErr(errText(e)) } finally { setBusy(false) } }
 
@@ -34,7 +28,7 @@ export default function ForgotPassword() {
     e.preventDefault()
     if (step === 'ask') return void run(async () => {
       if (!/^\S+@\S+\.\S+$/.test(email.trim())) throw new Error('Enter a valid email address.')
-      await sendEmailCode(email.trim().toLowerCase(), `${window.location.origin}/forgot-password`)
+      await sendEmailCode(email.trim().toLowerCase())
       setStep('sent')
     })
     if (step === 'sent') return void run(async () => {

@@ -5,7 +5,7 @@ import { useAuth } from '../auth/AuthContext'
 import { Logo } from '../components/Layout'
 import * as http from '../api/http'
 import { LANGUAGES, LanguageSelect, useT } from '../i18n'
-import { isEmailLink, rememberedEmail, sendEmailCode, takeLinkToken, verifyEmailCode } from '../auth/email'
+import { sendEmailCode, verifyEmailCode } from '../auth/email'
 
 const features = [
   { icon: FileText, label: 'Service Requests' },
@@ -128,17 +128,6 @@ export default function Login({ initial = 'login' }: { initial?: 'login' | 'regi
         const saved = sessionStorage.getItem(TOKEN_KEY)
         if (saved && d) { emailToken.current = saved; if (alive) { setMode('register'); setStep('verify') } return }
       } catch { /* ignore */ }
-      if (!isEmailLink()) return
-      if (!alive) return
-      setMode('register')
-      const addr = d?.email || rememberedEmail()
-      const tok = takeLinkToken()
-      if (!tok) return
-      emailToken.current = tok
-      try { sessionStorage.setItem(TOKEN_KEY, tok) } catch { /* ignore */ }
-      if (addr) setEmail(addr)
-      if (!d) { setStep('details'); setInfo('Email verified. Re-enter your details, then continue.'); return }
-      setStep('verify'); setInfo('Email verified. Now set a password.')
     })()
     return () => { alive = false }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -161,7 +150,7 @@ export default function Login({ initial = 'login' }: { initial?: 'login' | 'regi
     if (role === 'CUSTOMER' && !address.trim()) throw new Error('Enter your service address')
     await http.registerStart({ name: name.trim(), email: email.trim(), phone, role, address: address.trim() || undefined }) // rejects duplicates early
     saveDraft(draft())
-    await sendEmailCode(email.trim(), `${window.location.origin}/register`)
+    await sendEmailCode(email.trim())
     setCode(''); setStep('emailSent'); setInfo(`We emailed a verification code to ${email.trim()}.`); startCountdown()
   })
   const confirmCode = () => run(async () => {

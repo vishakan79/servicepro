@@ -12,6 +12,10 @@ import com.fieldservicely.dto.AuthDtos.TokenResponse;
 import com.fieldservicely.dto.AuthDtos.UpdateProfileRequest;
 import com.fieldservicely.dto.AuthDtos.UserView;
 import com.fieldservicely.security.CurrentUser;
+import com.fieldservicely.security.EmailProofService;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 import com.fieldservicely.util.ClientIp;
 import com.fieldservicely.security.RefreshCookie;
 import com.fieldservicely.service.AuthService;
@@ -35,11 +39,30 @@ public class AuthController {
     private final AuthService auth;
     private final AppProperties props;
     private final RefreshCookie cookie;
+    private final EmailProofService emailProof;
 
-    public AuthController(AuthService auth, AppProperties props, RefreshCookie cookie) {
+    public record EmailSend(@NotBlank @Email @Size(max = 160) String email) {}
+
+    public record EmailVerify(@NotBlank @Email @Size(max = 160) String email, @NotBlank @Size(max = 12) String code) {}
+
+    public AuthController(AuthService auth, AppProperties props, RefreshCookie cookie, EmailProofService emailProof) {
+        this.emailProof = emailProof;
         this.auth = auth;
         this.props = props;
         this.cookie = cookie;
+    }
+
+    /** Mails a 6-digit code to the address. */
+    @PostMapping("/email/send")
+    public ResponseEntity<Void> emailSend(@Valid @RequestBody EmailSend req, HttpServletRequest http) {
+        emailProof.sendCode(req.email(), ClientIp.of(http));
+        return ResponseEntity.noContent().build();
+    }
+
+    /** Exchanges the emailed code for a short-lived proof of the address. */
+    @PostMapping("/email/verify")
+    public java.util.Map<String, String> emailVerify(@Valid @RequestBody EmailVerify req) {
+        return java.util.Map.of("proof", emailProof.verifyCode(req.email(), req.code()));
     }
 
     @PostMapping("/login")

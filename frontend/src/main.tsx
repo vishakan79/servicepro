@@ -5,7 +5,6 @@ import App from './App'
 import { AuthProvider } from './auth/AuthContext'
 import { ApiStoreProvider } from './api/ApiStoreProvider'
 import { HASH_ROUTER } from './api/config'
-import { routeEmailLink } from './auth/email'
 import ErrorBoundary from './components/ErrorBoundary'
 import { LangProvider } from './i18n'
 import '@fontsource-variable/plus-jakarta-sans'
@@ -14,7 +13,6 @@ import './styles/pages.css'
 import './styles/theme.css'
 import './styles/login.css'
 
-routeEmailLink()
 const Router = HASH_ROUTER ? HashRouter : BrowserRouter
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
