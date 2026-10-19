@@ -5,7 +5,7 @@ export const API_BASE: string = import.meta.env.VITE_API_BASE ?? ''
  * WebSocket endpoint. Vercel cannot proxy WebSockets, so in production this points straight at the API host
  * (wss://api.example.com/ws). Empty = same origin, which is what the Vite dev proxy provides.
  */
-export const WS_URL: string = import.meta.env.VITE_WS_URL ?? ''
+export const WS_URL: string = import.meta.env.PROD ? 'wss://47-131-108-164.sslip.io/ws' : (import.meta.env.VITE_WS_URL ?? '')
 
 /** 'hash' for static hosts without rewrite support (the shareable demo); 'browser' (clean URLs) everywhere else. */
 export const HASH_ROUTER = import.meta.env.VITE_ROUTER === 'hash'
