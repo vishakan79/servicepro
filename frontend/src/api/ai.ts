@@ -1,11 +1,11 @@
 import { api } from './http'
 
-export type AiTask = 'TRIAGE' | 'ASSIST' | 'NOTE_SUMMARY' | 'ASSIGN' | 'REPORT_SUMMARY' | 'CHAT' | 'ROLE_ASSIST'
+export type AiTask = 'TRIAGE' | 'ASSIST' | 'NOTE_SUMMARY' | 'NOTE_IMPROVE' | 'ASSIGN' | 'REPORT_SUMMARY' | 'CHAT' | 'ROLE_ASSIST'
 
 /** Runs one AI task on the server (the Groq key stays there) and returns the answer text. */
 export async function aiRun(task: AiTask, input: unknown): Promise<string> {
   const text = typeof input === 'string' ? input : JSON.stringify(input)
-  const r = await api<{ text: string }>('/ai/run', { method: 'POST', body: { task, input: text.slice(0, 6000) } })
+  const r = await api<{ text: string }>('/ai/run', { method: 'POST', body: { task, input: text.slice(0, 9000) } })
   return r.text
 }
 

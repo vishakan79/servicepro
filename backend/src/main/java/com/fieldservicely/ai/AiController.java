@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/ai")
 public class AiController {
 
-    public record AiRequest(@NotNull AiTask task, @NotBlank @Size(max = 6000) String input) {}
+    public record AiRequest(@NotNull AiTask task, @NotBlank @Size(max = 9000) String input) {}
 
     public record AiResponse(String text) {}
 

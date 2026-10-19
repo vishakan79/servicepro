@@ -7,6 +7,7 @@ import { ISSUE_TYPES } from '../api/format'
 import { Avatar, Badge, Card, Field, PageHeader } from '../components/ui'
 import { Priority } from '../types'
 import { aiJson, aiMessage } from '../api/ai'
+import AiText from '../components/AiText'
 
 export default function NewRequest() {
   const { user } = useAuth()
@@ -45,15 +46,18 @@ export default function NewRequest() {
   const [busy, setBusy] = useState(false)
   const [aiBusy, setAiBusy] = useState(false)
   const [aiNote, setAiNote] = useState('')
+  interface Triage { issueType?: string; priority?: string; summary?: string; reason?: string; parts?: string[]; confidence?: string; questions?: string[] }
+  const [tri, setTri] = useState<(Triage & { applied: { issue?: string; pri?: Priority } }) | null>(null)
   const suggest = async () => {
     if (desc.trim().length < 10) { setErrs((e) => ({ ...e, desc: 'Describe the issue first (at least 10 characters)' })); return }
-    setAiBusy(true); setAiNote('')
+    setAiBusy(true); setAiNote(''); setTri(null)
     try {
-      const r = await aiJson<{ issueType?: string; priority?: string; parts?: string[]; reason?: string }>('TRIAGE', { description: desc.trim(), issueTypes: ISSUE_TYPES })
-      if (r.issueType && ISSUE_TYPES.includes(r.issueType)) setIssue(r.issueType)
+      const r = await aiJson<Triage>('TRIAGE', { description: desc.trim(), issueTypes: ISSUE_TYPES })
+      const applied: { issue?: string; pri?: Priority } = {}
+      if (r.issueType && ISSUE_TYPES.includes(r.issueType)) { setIssue(r.issueType); applied.issue = r.issueType }
       const p = r.priority && ['High', 'Medium', 'Low'].find((x) => x.toLowerCase() === r.priority!.toLowerCase())
-      if (p) setPri(p as Priority)
-      setAiNote([r.reason, r.parts?.length ? `Likely parts: ${r.parts.join(', ')}` : ''].filter(Boolean).join('\n'))
+      if (p) { setPri(p as Priority); applied.pri = p as Priority }
+      setTri({ ...r, applied })
     } catch (ex) { setAiNote(aiMessage(ex)) } finally { setAiBusy(false) }
   }
   const submit = async (e: React.FormEvent) => {
@@ -145,7 +149,28 @@ export default function NewRequest() {
             </Field>
             <div style={{ marginTop: 8 }}>
               <button type="button" className="btn sm ai-btn" onClick={suggest} disabled={aiBusy}><Sparkles size={14} /> {aiBusy ? 'Thinking…' : 'Suggest type & priority with AI'}</button>
-              {aiNote && <div className="ai-note">{aiNote}</div>}
+              {aiNote && <div className="ai-note"><AiText text={aiNote} /></div>}
+              {tri && (
+                <div className={`ai-suggest ${tri.confidence === 'low' ? 'low' : ''}`} role="status">
+                  <h4><Sparkles size={14} /> AI suggestion{tri.confidence ? ` · ${tri.confidence} confidence` : ''}</h4>
+                  <div className="pillrow">
+                    {tri.applied.issue && <span>Type: {tri.applied.issue}</span>}
+                    {tri.applied.pri && <span>Priority: {tri.applied.pri}</span>}
+                  </div>
+                  {tri.reason && <div>{tri.reason}</div>}
+                  {tri.summary && <div style={{ marginTop: 6 }}><b>Clear description:</b> {tri.summary}</div>}
+                  {!!tri.parts?.length && <div style={{ marginTop: 6 }}>Likely parts: {tri.parts.join(', ')}</div>}
+                  {!!tri.questions?.length && (
+                    <div style={{ marginTop: 6 }}>Add these details to help the technician:
+                      <ul>{tri.questions.map((q) => <li key={q}>{q}</li>)}</ul>
+                    </div>
+                  )}
+                  <div className="acts">
+                    {tri.summary && <button type="button" className="btn sm" onClick={() => setDesc((d) => `${tri.summary}\n\nCustomer's words: ${d.trim()}`)}>Use clear description</button>}
+                    <button type="button" className="btn sm" onClick={() => setTri(null)}>Dismiss</button>
+                  </div>
+                </div>
+              )}
             </div>
             <div style={{ marginTop: 14 }}>
               <span className="field-l">Images (Optional)</span>

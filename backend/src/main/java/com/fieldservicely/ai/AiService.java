@@ -26,7 +26,7 @@ public class AiService {
 
     private static final Logger log = LoggerFactory.getLogger(AiService.class);
     private static final URI ENDPOINT = URI.create("https://api.groq.com/openai/v1/chat/completions");
-    private static final int MAX_PER_MINUTE = 12;
+    private static final int MAX_PER_MINUTE = 24;
 
     private static final String COMMON = "You are the built-in assistant of ServicePro, a field service management app "
             + "(AC repair, plumbing, electrical, appliance service in India). Be short, practical and safe. "
@@ -42,13 +42,13 @@ public class AiService {
 
     public AiService(ObjectMapper mapper,
                      @Value("${GROQ_API_KEY:}") String apiKey,
-                     @Value("${GROQ_MODEL:openai/gpt-oss-20b}") String model) {
+                     @Value("${GROQ_MODEL:openai/gpt-oss-120b}") String model) {
         this.mapper = mapper;
         this.apiKey = apiKey == null ? "" : apiKey.trim();
         List<String> list = new ArrayList<>();
         list.add(model.trim());
         // Fallbacks, tried in order, when a model is retired or this key has no access to it.
-        for (String m : List.of("openai/gpt-oss-20b", "openai/gpt-oss-120b", "qwen/qwen3.8-27b", "llama-3.3-70b-versatile", "llama-3.1-8b-instant")) {
+        for (String m : List.of("openai/gpt-oss-120b", "openai/gpt-oss-20b", "qwen/qwen3.8-27b")) {
             if (!list.contains(m)) list.add(m);
         }
         this.models = List.copyOf(list);
@@ -78,7 +78,7 @@ public class AiService {
                 return text.trim();
             } catch (ModelUnavailable e) {
                 log.warn("Groq model {} unavailable: {}", model, e.getMessage());
-                last = new ApiException(HttpStatus.BAD_GATEWAY, "The AI service is not available right now. Try again later.");
+                last = new ApiException(HttpStatus.BAD_GATEWAY, "The AI is busy right now. Please try again in a moment.");
             }
         }
         throw last != null ? last : new ApiException(HttpStatus.BAD_GATEWAY, "The AI service is not available right now.");
@@ -88,8 +88,9 @@ public class AiService {
         try {
             var body = mapper.createObjectNode();
             body.put("model", model);
-            body.put("temperature", 0.3);
-            body.put("max_tokens", 1200);
+            body.put("temperature", json ? 0.1 : 0.3);
+            body.put("max_tokens", 1500);
+            if (json) body.putObject("response_format").put("type", "json_object");
             if (model.startsWith("openai/gpt-oss")) body.put("reasoning_effort", "low"); // reasoning models: keep thinking short so the answer fits
             var msgs = body.putArray("messages");
             msgs.addObject().put("role", "system").put("content", system);
@@ -102,7 +103,7 @@ public class AiService {
                     .build();
             HttpResponse<String> res = http.send(req, HttpResponse.BodyHandlers.ofString());
             int code = res.statusCode();
-            if (code == 429) throw new ApiException(HttpStatus.TOO_MANY_REQUESTS, "The AI is busy (free limit reached). Try again in a minute.");
+            if (code == 429 || code >= 500) throw new ModelUnavailable("HTTP " + code + " (rate limited or overloaded)");
             if (code == 400 || code == 403 || code == 404) throw new ModelUnavailable("HTTP " + code + " " + abbreviate(res.body()));
             if (code != 200) {
                 log.warn("Groq returned HTTP {}: {}", code, abbreviate(res.body()));
@@ -138,27 +139,37 @@ public class AiService {
 
     private static String instructions(AiTask task) {
         return switch (task) {
-            case TRIAGE -> "Task: classify a customer's service request. The user data is JSON with 'description' and 'issueTypes' (allowed values). "
-                    + "Answer ONLY a JSON object: {\"issueType\": one of issueTypes exactly, \"priority\": \"High\"|\"Medium\"|\"Low\", "
-                    + "\"parts\": [up to 4 short strings of parts likely needed], \"reason\": \"one short sentence\"}. "
-                    + "High = safety risk, no power/water, flooding, sparking, burning smell, total breakdown. Low = routine maintenance or cosmetic.";
+            case TRIAGE -> "Task: triage a customer's service request. The user data is JSON with 'description' (may contain typos, Tanglish, Hinglish or another Indian language) and 'issueTypes' (allowed values). "
+                    + "First understand what the customer means, even if badly written. Answer ONLY a JSON object with exactly these keys: "
+                    + "{\"issueType\": one of issueTypes exactly, \"priority\": \"High\"|\"Medium\"|\"Low\", "
+                    + "\"summary\": \"the problem rewritten as 1-2 clear English sentences for the technician, no invented facts\", "
+                    + "\"reason\": \"one short sentence explaining the priority\", "
+                    + "\"parts\": [up to 4 short parts likely needed, empty if unclear], "
+                    + "\"confidence\": \"high\"|\"medium\"|\"low\", "
+                    + "\"questions\": [up to 3 short questions to ask the customer, only when the description is vague or missing key details, else empty]}. "
+                    + "High = safety risk, no power or water, flooding, sparking, burning smell, gas smell, total breakdown. Medium = working poorly or intermittent. Low = routine service, cosmetic, or a question. "
+                    + "If the description is too vague to classify, set confidence low, choose the closest type, priority Medium, and ask questions.";
             case ASSIST -> "Task: help a field technician. The user data describes a work order (type, description, notes). "
-                    + "Give: 1) up to 5 likely causes, 2) a numbered checklist of at most 8 steps, 3) safety warnings if any. "
-                    + "Plain text, compact. Do not claim certainty; remind to verify on site.";
-            case NOTE_SUMMARY -> "Task: rewrite the technician's rough work notes into a clean 2-4 line summary a customer can read: what was found, what was done, what remains. Plain text.";
+                    + "Give: 1) up to 5 likely causes, most probable first, 2) a numbered checklist of at most 8 steps, 3) safety warnings if any (isolate power/gas/water first). "
+                    + "Use short lines, plain text with '-' bullets and numbers. Do not claim certainty; remind to verify on site.";
+            case NOTE_SUMMARY -> "Task: summarise a field job. The user data is JSON with 'job' (type, description, status), 'notes' (technician log, oldest first) and 'parts' used. "
+                    + "Write 3-5 short lines a customer or manager can read: what was found, what was done, what remains, and the next step. Use only the data given; if there are no notes, say that nothing has been logged yet. Plain text.";
+            case NOTE_IMPROVE -> "Task: rewrite the technician's rough work note into one clear, professional work-log entry of 1-3 sentences, in English. "
+                    + "Keep every fact (parts, readings, times, findings) and add nothing new. Fix spelling and grammar. Output only the rewritten note, with no preface or quotes.";
             case ASSIGN -> "Task: recommend the best technician for a job. The user data is JSON with 'job' (type, description, priority, date) and 'technicians' "
                     + "(id, name, skills, rating, jobsThatDay, onLeave). Prefer matching skills, not on leave, lower workload, higher rating. "
                     + "Answer ONLY JSON: {\"technicianId\": id from the list, \"reason\": \"one short sentence\"}. If nobody fits, use {\"technicianId\": null, \"reason\": \"...\"}.";
             case REPORT_SUMMARY -> "Task: write a short management summary (5-8 lines) of the business figures given: highlights, risks (SLA breaches, low stock, overdue invoices), and 2 suggested actions. "
-                    + "Use only the numbers given. Plain text, no tables.";
-            case ROLE_ASSIST -> "Task: help a signed-in ServicePro user. The user data is JSON with 'role' (ADMIN, MANAGER, TECHNICIAN, CUSTOMER or INVENTORY_MANAGER), "
-                    + "'question' and 'context' (only the figures that role may see). Answer only from the context and general field-service knowledge. "
+                    + "Use only the numbers given. Plain text with '-' bullets, no tables.";
+            case ROLE_ASSIST -> "Task: help a signed-in ServicePro user in a chat. The user data is JSON with 'role' (ADMIN, MANAGER, TECHNICIAN, CUSTOMER or INVENTORY_MANAGER), "
+                    + "'question', 'context' (only the figures that role may see) and optional 'history' (earlier messages of this chat, oldest first; use it to understand follow-ups like 'and the second one?'). "
+                    + "Answer only from the context and general field-service knowledge. If the context lacks something, say so plainly. "
                     + "For stock questions suggest reorder priorities from stock versus reorder level. For managers point out risks and next actions. "
                     + "For technicians give safe, step-by-step troubleshooting and mention isolating power or gas first. "
                     + "Explain where in the app to do things (Service Requests, Work Orders, Appointments, Inventory, Invoices). "
-                    + "Never reveal data the role should not see and never promise prices or dates that are not in the context. Keep it under 8 lines.";
-            case CHAT -> "Task: answer a customer's question about THEIR service requests using only the data given (their requests with status and dates). "
-                    + "If the answer is not in the data, say you don't know and suggest contacting support. Be friendly and brief. Never reveal other customers' data.";
+                    + "Never reveal data the role should not see and never promise prices or dates that are not in the context. Be concise: at most 8 lines, '-' bullets and **bold** for key words allowed.";
+            case CHAT -> "Task: answer a customer's question about THEIR service requests using only the data given ('myRequests' with status and dates) and optional 'history' (earlier messages, oldest first). "
+                    + "If the answer is not in the data, say you don't know and suggest contacting support. Be friendly and brief (at most 5 lines). Never reveal other customers' data.";
         };
     }
 

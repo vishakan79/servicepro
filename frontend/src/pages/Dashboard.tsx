@@ -8,6 +8,7 @@ import { fmtDate, isoDate } from '../api/format'
 import { Badge, Card, PageHeader, StatCard } from '../components/ui'
 import { useScoped } from './scope'
 import { aiMessage, aiRun } from '../api/ai'
+import AiText from '../components/AiText'
 
 const trend = [
   { m: 'Mar', Created: 310, Resolved: 270 }, { m: 'Apr', Created: 380, Resolved: 345 }, { m: 'May', Created: 350, Resolved: 330 },
@@ -117,7 +118,7 @@ export default function Dashboard() {
       {(user!.role === 'ADMIN' || user!.role === 'MANAGER') && (
         <Card title="AI summary">
           <button type="button" className="btn sm ai-btn" onClick={summarise} disabled={sumBusy}><Sparkles size={14} /> {sumBusy ? 'Thinking…' : 'Summarise the current figures'}</button>
-          {sum && <div className="ai-note">{sum}</div>}
+          {sum && <div className="ai-note"><AiText text={sum} /></div>}
         </Card>
       )}
 

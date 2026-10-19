@@ -7,6 +7,7 @@ import { fmtDate, fmtDateTime, fmtHour, inr } from '../api/format'
 import { Avatar, Badge, Card, Empty, PageHeader, Stars } from '../components/ui'
 import { WOStatus } from '../types'
 import { aiMessage, aiRun } from '../api/ai'
+import AiText from '../components/AiText'
 import { useScoped } from './scope'
 
 const NEXT: Record<WOStatus, WOStatus[]> = {
@@ -33,14 +34,29 @@ export default function WorkOrderDetail() {
   const [comment, setComment] = useState('')
   const [aiBusy, setAiBusy] = useState('')
   const [aiOut, setAiOut] = useState('')
-  const ask = async (kind: 'ASSIST' | 'NOTE_SUMMARY') => {
-    setAiBusy(kind); setAiOut('')
+  const [logOut, setLogOut] = useState('')
+  const jobData = () => ({
+    job: { type: w!.serviceType, description: w!.description, status: w!.status },
+    notes: w!.log.slice().reverse().map((l) => `${l.by}: ${l.text}`),
+    parts: w!.parts.map((p) => { const x = s.parts.find((q) => q.id === p.partId); return `${x?.name ?? 'Part'} x${p.qty}` }),
+  })
+  const ask = async (kind: 'ASSIST' | 'NOTE_SUMMARY' | 'NOTE_IMPROVE') => {
+    setAiBusy(kind)
+    if (kind === 'ASSIST') setAiOut(''); else setLogOut('')
     try {
-      const notes = w!.log.map((l) => l.text).join('\n')
-      setAiOut(await aiRun(kind, kind === 'ASSIST'
-        ? { type: w!.serviceType, description: w!.description, notes }
-        : `Work notes:\n${notes}`))
-    } catch (ex) { setAiOut(aiMessage(ex)) } finally { setAiBusy('') }
+      if (kind === 'ASSIST') {
+        const notes = w!.log.map((l) => l.text).join('\n')
+        setAiOut(await aiRun('ASSIST', { type: w!.serviceType, description: w!.description, notes }))
+      } else if (kind === 'NOTE_IMPROVE') {
+        const better = await aiRun('NOTE_IMPROVE', `Job: ${w!.serviceType} - ${w!.description}\nRough note: ${note.trim()}`)
+        setNote(better.replace(/^["']|["']$/g, ''))
+      } else {
+        setLogOut(await aiRun('NOTE_SUMMARY', jobData()))
+      }
+    } catch (ex) {
+      const m = aiMessage(ex)
+      if (kind === 'ASSIST') setAiOut(m); else setLogOut(m)
+    } finally { setAiBusy('') }
   }
 
   if (!w) {
@@ -173,7 +189,7 @@ export default function WorkOrderDetail() {
           {canWork && (
             <div style={{ marginTop: 12 }}>
               <button type="button" className="btn sm ai-btn" disabled={!!aiBusy} onClick={() => ask('ASSIST')}><Sparkles size={14} /> {aiBusy === 'ASSIST' ? 'Thinking…' : 'AI troubleshooting help'}</button>
-              {aiOut && <div className="ai-note">{aiOut}</div>}
+              {aiOut && <div className="ai-note"><AiText text={aiOut} /></div>}
             </div>
           )}
         </Card>
@@ -213,15 +229,18 @@ export default function WorkOrderDetail() {
           {canWork && open && (
             <div className="stack" style={{ gap: 8, marginBottom: 14 }}>
               <textarea value={note} onChange={(e) => setNote(e.target.value)} placeholder="Add a work note..." aria-label="Work note" />
-              <div><button className="btn p sm" disabled={!note.trim()} onClick={() => { s.addLog(w.id, note.trim(), user!.name); setNote('') }}>Add note</button></div>
+              <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                <button className="btn p sm" disabled={!note.trim()} onClick={() => { s.addLog(w.id, note.trim(), user!.name); setNote('') }}>Add note</button>
+                <button type="button" className="btn sm ai-btn" disabled={!!aiBusy || note.trim().length < 5} onClick={() => ask('NOTE_IMPROVE')} title="Rewrites your rough note clearly. Check it before adding.">
+                  <Sparkles size={14} /> {aiBusy === 'NOTE_IMPROVE' ? 'Improving…' : 'Improve note with AI'}
+                </button>
+              </div>
             </div>
           )}
-          {canWork && w.log.length > 0 && (
-            <div style={{ marginBottom: 12 }}>
-              <button type="button" className="btn sm ai-btn" disabled={!!aiBusy} onClick={() => ask('NOTE_SUMMARY')}><Sparkles size={14} /> {aiBusy === 'NOTE_SUMMARY' ? 'Thinking…' : 'Summarise notes with AI'}</button>
-              {aiOut && <div className="ai-note">{aiOut}</div>}
-            </div>
-          )}
+          <div style={{ marginBottom: 12 }}>
+            <button type="button" className="btn sm ai-btn" disabled={!!aiBusy} onClick={() => ask('NOTE_SUMMARY')}><Sparkles size={14} /> {aiBusy === 'NOTE_SUMMARY' ? 'Thinking…' : 'AI job summary'}</button>
+            {logOut && <div className="ai-note"><AiText text={logOut} /></div>}
+          </div>
           <ul className="log">
             {w.log.map((l, i) => <li key={i}><b>{l.by}</b> <small className="muted">{fmtDateTime(l.at)}</small><p>{l.text}</p></li>)}
             {!w.log.length && <Empty text="No notes yet." />}

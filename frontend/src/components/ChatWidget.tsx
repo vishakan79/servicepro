@@ -2,6 +2,7 @@ import { useRef, useState } from 'react'
 import { Bot, Send, X } from 'lucide-react'
 import { useScoped } from '../pages/scope'
 import { aiMessage, aiRun } from '../api/ai'
+import AiText from './AiText'
 
 interface Msg { from: 'me' | 'ai'; text: string }
 
@@ -25,7 +26,8 @@ export default function ChatWidget() {
         const w = workOrders.find((x) => x.id === r.workOrderId)
         return { code: r.code, issue: r.issueType, priority: r.priority, requestStatus: r.status, created: r.createdOn, workOrderStatus: w?.status, visitDate: w?.date, startHour: w?.startHour }
       })
-      const ans = await aiRun('CHAT', JSON.stringify({ question: text, myRequests: data }))
+      const history = msgs.slice(1).slice(-6).map((m) => ({ from: m.from, text: m.text.slice(0, 400) }))
+      const ans = await aiRun('CHAT', JSON.stringify({ question: text, myRequests: data, history }))
       setMsgs((m) => [...m, { from: 'ai', text: ans }])
     } catch (ex) {
       setMsgs((m) => [...m, { from: 'ai', text: aiMessage(ex) }])
@@ -44,12 +46,12 @@ export default function ChatWidget() {
         <div className="chat-box" role="dialog" aria-label="Assistant">
           <div className="chat-h"><Bot size={18} /> ServicePro assistant</div>
           <div className="chat-b">
-            {msgs.map((m, i) => <p key={i} className={`chat-m ${m.from}`}>{m.text}</p>)}
+            {msgs.map((m, i) => <div key={i} className={`chat-m ${m.from}`}>{m.from === 'ai' ? <AiText text={m.text} /> : m.text}</div>)}
             {busy && <p className="chat-m ai">Thinking…</p>}
             <div ref={end} />
           </div>
           <form className="chat-f" onSubmit={send}>
-            <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Ask about your request…" maxLength={300} aria-label="Your question" />
+            <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Ask about your request…" maxLength={400} aria-label="Your question" />
             <button type="submit" disabled={busy || !q.trim()} aria-label="Send"><Send size={16} /></button>
           </form>
         </div>

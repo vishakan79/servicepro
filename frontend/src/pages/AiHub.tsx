@@ -4,6 +4,7 @@ import { ArrowRight, Bot, ClipboardList, FileText, LayoutDashboard, MessageSquar
 import { useAuth } from '../auth/AuthContext'
 import { useStore } from '../api/store'
 import { aiMessage, aiRun } from '../api/ai'
+import AiText from '../components/AiText'
 import { Card, PageHeader } from '../components/ui'
 import { useScoped } from './scope'
 import { Role } from '../types'
@@ -78,7 +79,8 @@ export default function AiHub() {
     setQ(''); setBusy(true)
     setMsgs((m) => [...m, { from: 'me', text: question }])
     try {
-      const ans = await aiRun('ROLE_ASSIST', { role, question, context })
+      const history = msgs.slice(1).slice(-6).map((m) => ({ from: m.from, text: m.text.slice(0, 500) }))
+      const ans = await aiRun('ROLE_ASSIST', { role, question, context, history })
       setMsgs((m) => [...m, { from: 'ai', text: ans }])
     } catch (e) { setMsgs((m) => [...m, { from: 'ai', text: aiMessage(e) }]) } finally { setBusy(false) }
   }
@@ -103,7 +105,7 @@ export default function AiHub() {
         <Card title={<><Bot size={17} style={{ verticalAlign: '-3px' }} /> Ask the assistant</>}>
           <div className="ai-chat">
             <div className="ai-msgs" aria-live="polite">
-              {msgs.map((m, i) => <p key={i} className={`chat-m ${m.from}`}>{m.text}</p>)}
+              {msgs.map((m, i) => <div key={i} className={`chat-m ${m.from}`}>{m.from === 'ai' ? <AiText text={m.text} /> : m.text}</div>)}
               {busy && <p className="chat-m ai">Thinking…</p>}
               <div ref={end} />
             </div>
@@ -111,7 +113,7 @@ export default function AiHub() {
               {PROMPTS[role].map((p) => <button key={p} type="button" className="chip" disabled={busy} onClick={() => void ask(p)}>{p}</button>)}
             </div>
             <form className="chat-f" onSubmit={(e) => { e.preventDefault(); void ask(q) }}>
-              <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Ask in English, Tamil, Hindi…" maxLength={300} aria-label="Your question" />
+              <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Ask in English, Tamil, Hindi…" maxLength={400} aria-label="Your question" />
               <button type="submit" disabled={busy || !q.trim()} aria-label="Send"><Send size={16} /></button>
             </form>
           </div>

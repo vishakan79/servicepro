@@ -239,3 +239,18 @@
 .job-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:6px}
 .job-actions .btn.big{min-height:48px;justify-content:center;font-size:15px}
 @media (max-width:520px){.job-actions{grid-template-columns:1fr}}
+
+/* AI text + suggestion card */
+.ai-note { white-space: normal; }
+.ai-text .ai-p { margin: 0 0 6px; }
+.ai-text .ai-p:last-child { margin-bottom: 0; }
+.ai-text .ai-list { margin: 0 0 6px; padding-left: 20px; }
+.ai-text .ai-list li { margin: 2px 0; }
+.chat-m { white-space: normal; }
+.ai-suggest { margin-top: 10px; padding: 12px 14px; border-radius: 12px; background: #eef4ff; border: 1px solid #d5e3ff; color: #1e3a6e; font-size: 13.5px; line-height: 1.5; }
+.ai-suggest h4 { margin: 0 0 6px; font-size: 13px; display: flex; align-items: center; gap: 6px; }
+.ai-suggest .pillrow { display: flex; flex-wrap: wrap; gap: 6px; margin: 6px 0; }
+.ai-suggest .pillrow span { background: #fff; border: 1px solid #c9dafc; border-radius: 999px; padding: 2px 10px; font-weight: 600; font-size: 12.5px; }
+.ai-suggest ul { margin: 4px 0 0; padding-left: 18px; }
+.ai-suggest .acts { display: flex; gap: 8px; margin-top: 8px; flex-wrap: wrap; }
+.ai-suggest.low { background: #fff8ec; border-color: #f5dcae; color: #6b4a07; }

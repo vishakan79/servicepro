@@ -5,6 +5,7 @@ public enum AiTask {
     TRIAGE(true),
     ASSIST(false),
     NOTE_SUMMARY(false),
+    NOTE_IMPROVE(false),
     ASSIGN(true),
     REPORT_SUMMARY(false),
     CHAT(false),
