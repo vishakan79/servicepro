@@ -37,6 +37,7 @@ async function call<T>(path: string, body: unknown, verifying = false): Promise<
 
 /** Emails a verification code/link. `returnUrl` is where the emailed link lands. */
 export async function sendEmailCode(email: string, returnUrl: string): Promise<void> {
+  try { localStorage.setItem('sp.emailReturn', new URL(returnUrl).pathname) } catch { /* ignore */ }
   await call(`/otp?redirect_to=${encodeURIComponent(returnUrl)}`, { email, create_user: true })
   remember(email)
 }
@@ -59,4 +60,12 @@ export function takeLinkToken(): string {
   const t = p.get('access_token') ?? ''
   window.history.replaceState(null, '', window.location.pathname)
   return t
+}
+
+/** If the emailed link opened on the wrong page (Supabase falls back to its Site URL), move it to the page that asked for it, keeping the token. */
+export function routeEmailLink(): void {
+  if (!isEmailLink()) return
+  let target = '/register'
+  try { target = localStorage.getItem('sp.emailReturn') || target } catch { /* ignore */ }
+  if (window.location.pathname !== target) window.history.replaceState(null, '', target + window.location.hash)
 }
