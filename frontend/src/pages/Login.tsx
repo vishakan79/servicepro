@@ -282,8 +282,10 @@ export default function Login({ initial = 'login' }: { initial?: 'login' | 'regi
                   </label>
                   <div className="mailnote">
                     <p>{t('Enter the code we emailed you. If the email has a link instead, open it in this browser.')}</p>
-                    <button type="button" className="link" disabled={left > 0 || busy} onClick={() => sendLink()}>{left > 0 ? t('Resend code in {n}s', { n: left }) : t('Resend code')}</button>
-                    {' · '}<button type="button" className="link" onClick={() => { setStep('details'); setErr(''); setInfo('') }}>{t('Change details')}</button>
+                    <div style={{ display: 'flex', gap: 14, flexWrap: 'wrap' }}>
+                      <button type="button" className="link" disabled={left > 0 || busy} onClick={() => sendLink()}>{left > 0 ? t('Resend code in {n}s', { n: left }) : t('Resend code')}</button>
+                      <button type="button" className="link" onClick={() => { setStep('details'); setErr(''); setInfo('') }}>{t('Change details')}</button>
+                    </div>
                   </div>
                 </>
               )}
