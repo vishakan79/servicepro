@@ -1,0 +1,149 @@
+/* ============================================================
+   Responsive layer. Loaded last, so it wins over the older per-page rules.
+   Breakpoints: 1100 (small laptop / tablet landscape), 900 (tablet), 700 (large phone), 480 (phone).
+   ============================================================ */
+
+/* --- header: nothing may be pushed off the right edge --- */
+header.hdr .hdr-in { min-width: 0; }
+header.hdr .hdr-logo { min-width: 0; }
+.hdr-r, .burger { flex: none; }
+
+@media (max-width: 640px) {
+  header.hdr .hdr-in { gap: 6px; padding-left: 10px; padding-right: 6px; }
+  .hdr-r { gap: 2px; }
+  .logo-t { font-size: 19px; }
+  .logo-m { width: 32px; height: 32px; }
+  .logo { gap: 8px; }
+}
+/* the language picker also lives in the drawer, so phones don't need it in the bar */
+@media (max-width: 480px) {
+  .hdr-r .langsel { display: none; }
+}
+@media (max-width: 340px) {
+  .logo-t { font-size: 17px; }
+  .hdr-r .ai-pill { display: none; }
+}
+
+/* --- page bands and cards on phones --- */
+@media (max-width: 700px) {
+  .content.wrap { padding-left: 14px; padding-right: 14px; }
+  .page-h { padding: 22px 0 20px; margin-bottom: 18px; }
+  .page-h h1 { font-size: 24px; }
+  .page-h p { font-size: 14px; }
+  .toolbar { gap: 8px; }
+  .toolbar .search { max-width: none; flex: 1 1 100%; }
+  .toolbar select { flex: 1 1 140px; width: auto; min-width: 0; }
+  .toolbar .btn { flex: 1 1 auto; }
+  .tabs { gap: 18px; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
+  .tabs::-webkit-scrollbar { display: none; }
+  .card-h { flex-wrap: wrap; }
+  .kv { grid-template-columns: minmax(90px, 36%) 1fr; }
+  .toasts { left: 12px; right: 12px; bottom: calc(12px + env(safe-area-inset-bottom)); }
+  .toast { max-width: none; }
+}
+
+/* --- tables turn into stacked cards on phones (labels are added by Layout from the column headings) --- */
+@media (max-width: 700px) {
+  .tbl-wrap { overflow-x: visible; }
+  .tbl { min-width: 0 !important; display: block; }
+  .tbl thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+  .tbl tbody, .tbl tfoot { display: block; }
+  .tbl tr { display: block; padding: 12px 16px; border-bottom: 1px solid var(--line); }
+  .tbl tbody tr:last-child { border-bottom: 0; }
+  .tbl td {
+    display: flex; align-items: center; justify-content: flex-end; gap: 8px; width: auto;
+    padding: 5px 0 !important; border: 0 !important; text-align: right;
+    white-space: normal !important; max-width: none !important; overflow: visible !important; text-overflow: clip !important;
+  }
+  .tbl td::before { content: attr(data-label); flex: none; margin-right: auto; padding-right: 8px; max-width: 42%; color: var(--muted); font-size: 12.5px; font-weight: 600; text-align: left; }
+  .tbl td:not([data-label])::before, .tbl td[data-label=""]::before { content: none; }
+  .tbl td[colspan] { justify-content: center; text-align: center; }
+  .tbl td.num { text-align: right; }
+  .tbl td > .who-c { text-align: left; }
+  .tbl td .btn, .tbl td button { margin-left: auto; }
+  .tbl tbody tr.click { cursor: pointer; }
+  .tbl tbody tr.click:active { background: #f1f5fb; }
+}
+
+/* --- calendar: Day view fills the screen, Week view scrolls sideways with a sticky hour column --- */
+@media (max-width: 700px) {
+  .cal { -webkit-overflow-scrolling: touch; }
+  .cal-t { padding-right: 6px; }
+  .ev { font-size: 11px; }
+}
+
+/* --- touch devices: bigger hit targets --- */
+@media (pointer: coarse) {
+  .btn.sm { height: 38px; }
+  .icon-btn { width: 42px; height: 42px; }
+  .seg button, .tab { min-height: 40px; }
+  .d-link { padding: 14px 12px; }
+}
+
+/* --- tablets (portrait and landscape) --- */
+@media (min-width: 701px) and (max-width: 1100px) {
+  .content.wrap { padding-left: 20px; padding-right: 20px; }
+  .toolbar .search { max-width: 360px; }
+}
+
+/* --- forms that use inline two-column grids collapse on narrow screens --- */
+@media (max-width: 700px) {
+  .form-grid, .grid-2.form, .row2 { grid-template-columns: 1fr !important; }
+}
+
+/* --- big screens: keep line lengths sane --- */
+@media (min-width: 1600px) {
+  :root { --wrap: 1360px; }
+}
+
+/* --- landscape phones: don't let the sticky header eat the screen --- */
+@media (max-height: 480px) and (orientation: landscape) {
+  header.hdr { position: static; }
+}
+
+/* --- cards that hold a table go edge to edge; inline-width buttons no longer push past the card --- */
+@media (max-width: 900px) {
+  .card:has(> .tbl-wrap), .card:has(> .tbl) { padding: 0 !important; overflow: hidden; }
+  .card > .tbl-wrap, .card > .tbl { margin-left: 0 !important; margin-right: 0 !important; }
+}
+.card > .btn { display: flex; width: auto !important; }
+@media (max-width: 700px) {
+  .tbl td:has(> .badge + .badge), .tbl td:has(> .chip + .chip) { flex-wrap: wrap; justify-content: flex-end; gap: 4px; }
+  .tbl td > .badge { margin-right: 0 !important; }
+}
+
+/* --- login / register: the grid column may shrink below the widest child on 320px phones --- */
+.login > * { min-width: 0; }
+@media (max-width: 1000px) {
+  .login { grid-template-columns: minmax(0, 1fr); }
+  .login-r { padding-left: 16px; padding-right: 16px; }
+}
+@media (max-width: 1100px) { .login .hero .scene { display: none; } }
+
+/* --- tablets: let table cells wrap so Priority and Status stay visible without sideways scrolling --- */
+@media (min-width: 701px) and (max-width: 1100px) {
+  .tbl { min-width: 0 !important; }
+  .tbl th, .tbl td { padding: 11px 10px; }
+  .tbl td, .tbl th { white-space: normal !important; max-width: none !important; overflow: visible !important; text-overflow: clip !important; }
+  .tbl th { white-space: nowrap !important; }
+  .tbl .who-c { min-width: 0; }
+}
+
+/* --- small laptops (1101-1280): give the header a little air --- */
+@media (min-width: 1101px) and (max-width: 1280px) {
+  header.hdr .hdr-in { gap: 10px; }
+  header.hdr .m-link { padding: 0 7px; font-size: 13.5px; }
+  .hdr-r .ai-pill span { display: none; }
+  .hdr-r .ai-pill { padding: 0 10px; }
+  .hdr-r .cta { margin: 0 2px; padding: 0 12px; }
+}
+
+/* --- chat widget: stays clear of the drawer, the notch and the on-screen keyboard --- */
+body:has(.drawer.open) .chat-fab, body:has(.drawer.open) .chat-box { display: none; }
+.chat-fab { right: calc(20px + env(safe-area-inset-right)); bottom: calc(20px + env(safe-area-inset-bottom)); }
+.chat-box { right: calc(20px + env(safe-area-inset-right)); bottom: calc(84px + env(safe-area-inset-bottom)); height: min(480px, calc(100dvh - 170px)); }
+@media (max-width: 480px) {
+  .chat-fab { right: 14px; width: 48px; height: 48px; }
+  .chat-box { right: 12px; left: 12px; width: auto; bottom: calc(76px + env(safe-area-inset-bottom)); }
+  .chat-f input { font-size: 16px; } /* iOS zooms into inputs below 16px */
+}

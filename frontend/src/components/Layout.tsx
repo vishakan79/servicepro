@@ -51,6 +51,21 @@ export const NAV: { to: string; label: string; icon: typeof Bell; roles: Role[] 
 
 const PRIMARY = 4 // items shown in the header bar; the rest sit under "More"
 
+/** Copies each column heading onto its cells (data-label) so the CSS can show them when a table becomes stacked cards on phones. */
+function labelTables(root: ParentNode) {
+  root.querySelectorAll('table.tbl').forEach((tb) => {
+    const heads = Array.from(tb.querySelectorAll('thead th')).map((h) => h.textContent?.trim() ?? '')
+    if (!heads.length) return
+    tb.querySelectorAll('tbody tr').forEach((tr) => {
+      Array.from(tr.children).forEach((td, i) => {
+        if (td.tagName !== 'TD' || (td as HTMLTableCellElement).colSpan > 1) return
+        const l = heads[i] ?? ''
+        if (td.getAttribute('data-label') !== l) td.setAttribute('data-label', l)
+      })
+    })
+  })
+}
+
 export default function Layout() {
   const { user, logout } = useAuth()
   const t = useT()
@@ -70,6 +85,16 @@ export default function Layout() {
     const h = (e: MouseEvent) => { if (ref.current && !ref.current.contains(e.target as Node)) { setBell(false); setMenu(false); setMore(false) } }
     document.addEventListener('mousedown', h)
     return () => document.removeEventListener('mousedown', h)
+  }, [])
+  useEffect(() => {
+    const main = document.getElementById('root')
+    if (!main) return
+    let raf = 0
+    const run = () => { cancelAnimationFrame(raf); raf = requestAnimationFrame(() => labelTables(main)) }
+    run()
+    const mo = new MutationObserver(run)
+    mo.observe(main, { childList: true, subtree: true })
+    return () => { mo.disconnect(); cancelAnimationFrame(raf) }
   }, [])
   useEffect(() => {
     document.body.style.overflow = open ? 'hidden' : ''

@@ -42,7 +42,7 @@ export default function Appointments() {
   const { customers, technicians } = useStore()
   const { workOrders } = useScoped()
   const nav = useNavigate()
-  const [mode, setMode] = useState<'Day' | 'Week'>('Week')
+  const [mode, setMode] = useState<'Day' | 'Week'>(() => (typeof window !== 'undefined' && window.innerWidth < 700 ? 'Day' : 'Week'))
   const [techId, setTechId] = useState(0)
   const [anchor, setAnchor] = useState(isoDate(0))
   const days = useMemo(() => (mode === 'Week' ? Array.from({ length: 7 }, (_, i) => addDays(monday(anchor), i)) : [anchor]), [mode, anchor])
@@ -69,7 +69,7 @@ export default function Appointments() {
         )}
       </div>
       <Card className="p0">
-        <div className="cal" style={{ gridTemplateColumns: `56px repeat(${days.length}, minmax(${mode === 'Week' ? 110 : 300}px, 1fr))` }}>
+        <div className="cal" style={{ gridTemplateColumns: `56px repeat(${days.length}, minmax(${mode === 'Week' ? 110 : 0}px, 1fr))` }}>
           <div className="cal-h" />
           {days.map((d) => <div key={d} className={`cal-h ${d === isoDate(0) ? 'today' : ''}`}>{label(d, { weekday: 'short' })}<b>{label(d, { day: 'numeric' })}</b></div>)}
           <div>{HOURS.map((h) => <div key={h} className="cal-t">{fmtHour(h).replace(':00', '')}</div>)}</div>

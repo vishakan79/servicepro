@@ -12,6 +12,7 @@ import './styles/global.css'
 import './styles/pages.css'
 import './styles/theme.css'
 import './styles/login.css'
+import './styles/responsive.css'
 
 const Router = HASH_ROUTER ? HashRouter : BrowserRouter
 

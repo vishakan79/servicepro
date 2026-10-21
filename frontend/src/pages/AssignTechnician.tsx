@@ -23,6 +23,7 @@ export default function AssignTechnician() {
   const [dur, setDur] = useState(w?.duration ?? 2)
   const [notes, setNotes] = useState(w?.notes ?? '')
   const [err, setErr] = useState('')
+  const [aiBusy, setAiBusy] = useState(false)
 
   const need = w ? SKILLS[w.serviceType] ?? [] : []
   const list = useMemo(
@@ -40,7 +41,6 @@ export default function AssignTechnician() {
     if (e) { setErr(e); return }
     nav(`/work-orders/${w.id}`)
   }
-  const [aiBusy, setAiBusy] = useState(false)
   const aiPick = async () => {
     setAiBusy(true); setErr('')
     try {
