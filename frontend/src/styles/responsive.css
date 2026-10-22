@@ -16,8 +16,10 @@ header.hdr .hdr-logo { min-width: 0; }
   .logo { gap: 8px; }
 }
 /* the language picker also lives in the drawer, so phones don't need it in the bar */
-@media (max-width: 480px) {
-  .hdr-r .langsel { display: none; }
+@media (max-width: 760px) {
+  .hdr-r .langsel, .hdr-r .lang, .hdr-r .cta { display: none; }
+  .hdr-r .ai-pill span { display: none; }
+  .hdr-r .ai-pill { padding: 0 10px; }
 }
 @media (max-width: 340px) {
   .logo-t { font-size: 17px; }

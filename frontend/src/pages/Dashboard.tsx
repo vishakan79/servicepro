@@ -37,7 +37,7 @@ export default function Dashboard() {
     } catch (ex) { setSum(aiMessage(ex)) } finally { setSumBusy(false) }
   }
   const hour = new Date().getHours()
-  const greet = hour < 12 ? 'Good Morning' : hour < 17 ? 'Good Afternoon' : 'Good Evening'
+  const greet = hour >= 5 && hour < 12 ? 'Good Morning' : hour >= 12 && hour < 17 ? 'Good Afternoon' : hour >= 17 && hour < 21 ? 'Good Evening' : 'Good Night'
   const first = user!.name.split(' ')[0]
 
   const stats = useMemo(() => {
